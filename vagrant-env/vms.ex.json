@@ -1,0 +1,29 @@
+[
+    {
+        "isManager": true,
+        "name": "manager1",
+        "box": "hashicorp-education/ubuntu-24-04",
+        "disk_size": "10GB",
+        "ram": 2048,
+        "vcpu": 2,
+        "ip_addr": "192.168.56.32"
+    },
+    {
+        "isManager": false,
+        "name": "worker1",
+        "box": "hashicorp-education/ubuntu-24-04",
+        "disk_size": "10GB",
+        "ram": 2048,
+        "vcpu": 2,
+        "ip_addr": "192.168.56.40"
+    },
+    {
+        "isManager": false,
+        "name": "worker2",
+        "box": "hashicorp-education/ubuntu-24-04",
+        "disk_size": "10GB",
+        "ram": 2048,
+        "vcpu": 2,
+        "ip_addr": "192.168.56.50"
+    }
+]

@@ -1,0 +1,160 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+require 'json'
+
+FILEJ = File.read('vms.json')
+VMS = JSON.parse(FILEJ)
+abort('No VMs found!') if VMS.empty?
+
+MASTER_MANAGER = VMS.find { |node| node['isManager'] }
+abort('No master manager found!') unless MASTER_MANAGER
+
+VMS.delete(MASTER_MANAGER) if MASTER_MANAGER
+
+# --- helpers
+
+# set vm settings for different providers
+def apply_provider_settings(node, opts)
+  vcpu      = opts.fetch('vcpu', 1)
+  ram       = opts.fetch('ram', 512)
+  disk_size = opts.fetch('disk_size', '10G')
+
+  node.vm.provider 'virtualbox' do |vb|
+    vb.cpus = vcpu
+    vb.memory = ram
+    # vb.disksize.size = disk_size
+    vb.gui = opts.fetch('gui', false)
+  end
+
+  node.vm.provider 'libvirt' do |lv|
+    lv.cpus = vcpu
+    lv.memory = ram
+    # lv.storage :file, size: disk_size
+    lv.driver = 'kvm'
+  end
+end
+
+def apply_network(node, vminfo)
+  adapter = vminfo.fetch('adapter', 'private')
+  ip = vminfo['ip_addr']
+  case adapter
+  when 'private', 'hostonly'
+    node.vm.network 'private_network', ip: ip
+  when 'public', 'bridged'
+    bridge = vminfo['bridge'] || vminfo['bridge_interface'] || nil
+    if bridge
+      node.vm.network 'public_network', bridge: bridge, ip: ip
+    else
+      node.vm.network 'public_network', ip: ip
+    end
+  else
+    node.vm.network 'private_network', ip: ip
+  end
+end
+
+# provisioners shared by all machines
+def apply_common_provisioners(node)
+  node.vm.provision 'shell', name: 'common', path: './scripts/install-docker.sh'
+
+  node.vm.provision 'shell', name: 'open-ports', inline: <<-SHELL
+    sudo ufw allow 2377/tcp || true
+    sudo ufw allow 7946/tcp || true
+    sudo ufw allow 7946/udp || true
+    sudo ufw allow 4789/udp || true
+  SHELL
+end
+
+# --- vagrant config
+
+Vagrant.configure('2') do |config|
+  # default box
+  config.vm.box = 'hashicorp-education/ubuntu-24-04'
+  config.vm.box_version = '0.1.0'
+
+  config.vm.define MASTER_MANAGER['name'] do |m|
+    m.vm.box = MASTER_MANAGER['box'] || config.vm.box
+    m.vm.hostname = MASTER_MANAGER['name']
+    apply_network(m, MASTER_MANAGER)
+    apply_provider_settings(m, MASTER_MANAGER)
+    apply_common_provisioners(m)
+
+    # tokens shared folder
+    m.vm.synced_folder './shared/tokens', '/tokens', create: true
+
+    # manager init
+    m.vm.provision 'shell', name: 'init-swarm', inline: <<-SHELL
+      set -e
+      mkdir -p /tokens
+
+      # only init if not already a swarm manager
+      if ! docker info | grep "Swarm: active"; then
+        docker swarm init --advertise-addr #{MASTER_MANAGER['ip_addr']}
+      fi
+
+      docker swarm join-token -q manager > /tokens/manager
+      docker swarm join-token -q worker  > /tokens/worker
+
+      echo "tokens written to /tokens"
+    SHELL
+  end
+
+  # other nodes
+  VMS.each do |vminfo|
+    config.vm.define vminfo['name'] do |node|
+      node.vm.box = vminfo['box'] || config.vm.box
+      node.vm.hostname = vminfo['name']
+
+      apply_network(node, vminfo)
+      apply_provider_settings(node, vminfo)
+      apply_common_provisioners(node)
+
+      node.vm.synced_folder './shared/tokens', '/tokens', create: true
+
+      # join swarm
+      node.vm.provision 'shell', name: 'init-swarm', inline: <<-SHELL
+        set -e
+
+        until [ -f /tokens/worker ]; do
+          echo "waiting for /tokens/worker..."
+          sleep 2
+        done
+
+        # skip if already part of swarm
+        if docker info | grep "Swarm: active"; then
+          echo "already part of a swarm; skipping join"
+          exit 0
+        fi
+
+        docker swarm join --token $(cat /tokens/worker) #{MASTER_MANAGER['ip_addr']}:2377 || true
+      SHELL
+
+      node.vm.provision 'shell', name: 'rejoin-swarm', run: 'never', inline: <<-SHELL
+        set -e
+
+        if docker info | grep "Swarm: active"; then
+          echo "leaving current swarm..."
+          docker swarm leave --force || true
+          sleep 2
+        fi
+
+        until [ -f /tokens/worker ]; do
+          echo "waiting for /tokens/worker..."
+          sleep 2
+        done
+
+        docker swarm join --token $(cat /tokens/worker) #{MASTER_MANAGER['ip_addr']}:2377
+      SHELL
+
+      node.vm.provision 'shell', name: 'leave-swarm', run: 'never', inline: <<-SHELL
+        set -e
+        if docker info | grep "Swarm: active"; then
+          docker swarm leave --force || true
+          echo "left the swarm"
+        else
+          echo "not part of any swarm"
+        fi
+      SHELL
+    end
+  end
+end

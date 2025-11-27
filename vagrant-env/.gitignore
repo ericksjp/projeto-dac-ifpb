@@ -1,0 +1,4 @@
+.ruby-lsp/
+.vagrant/
+shared/
+vms.json
