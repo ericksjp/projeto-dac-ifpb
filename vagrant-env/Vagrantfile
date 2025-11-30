@@ -92,6 +92,10 @@ Vagrant.configure('2') do |config|
         docker swarm init --advertise-addr #{MASTER_MANAGER['ip_addr']}
       fi
 
+      if ! docker service ls --format '{{.Name}}' | grep '^register$'; then
+        docker service create --name registry --mode global --publish published=5000,target=5000 registry:2
+      fi
+
       docker swarm join-token -q manager > /tokens/manager
       docker swarm join-token -q worker  > /tokens/worker
 
