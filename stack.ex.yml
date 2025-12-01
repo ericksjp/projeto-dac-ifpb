@@ -10,7 +10,7 @@ services:
     networks:
       - charger-network
     deploy:
-      replicas: 3
+      replicas: 2
 
   charger-manager:
     image: 127.0.0.1:5000/charger-manager:latest
@@ -22,11 +22,7 @@ services:
     networks:
       - charger-network
     deploy:
-      replicas: 3
-      restart_policy:
-        condition: any
-        delay: 5s
-        max_attempts: 3
+      replicas: 2
 
   postgres:
     image: postgres:15-alpine
@@ -53,3 +49,7 @@ networks:
   charger-network:
     driver: overlay
     attachable: true
+
+volumes:
+  postgres_data:
+    driver: local
