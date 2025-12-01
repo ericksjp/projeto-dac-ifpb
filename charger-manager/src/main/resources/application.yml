@@ -1,5 +1,8 @@
 server:
-  port: 8080
+  port: ${PORT}
 spring:
   application:
     name: charger-manager
+soap:
+  service:
+    url: ${WS_URL}
