@@ -80,12 +80,12 @@ Vagrant.configure('2') do |config|
     apply_common_provisioners(m)
 
     # tokens shared folder
-    m.vm.synced_folder './shared/tokens', '/tokens', create: true
+    m.vm.synced_folder './shared/tokens', '/shared/tokens', create: true
 
     # manager init
     m.vm.provision 'shell', name: 'init-swarm', inline: <<-SHELL
       set -e
-      mkdir -p /tokens
+      mkdir -p /shared/tokens
 
       # only init if not already a swarm manager
       if ! docker info | grep "Swarm: active"; then
@@ -93,13 +93,13 @@ Vagrant.configure('2') do |config|
       fi
 
       if ! docker service ls --format '{{.Name}}' | grep '^register$'; then
-        docker service create --name registry --mode global --publish published=5000,target=5000 registry:2
+        docker service create --name registry --publish published=5000,target=5000 registry:2
       fi
 
-      docker swarm join-token -q manager > /tokens/manager
-      docker swarm join-token -q worker  > /tokens/worker
+      docker swarm join-token -q manager > /shared/tokens/manager
+      docker swarm join-token -q worker  > /shared/tokens/worker
 
-      echo "tokens written to /tokens"
+      echo "tokens written to /shared/tokens"
     SHELL
   end
 
@@ -113,14 +113,15 @@ Vagrant.configure('2') do |config|
       apply_provider_settings(node, vminfo)
       apply_common_provisioners(node)
 
-      node.vm.synced_folder './shared/tokens', '/tokens', create: true
+      node.vm.synced_folder './shared/tokens', '/shared/tokens', create: true
+      node.vm.synced_folder './shared/stacks', '/shared/stacks', create: true
 
       # join swarm
       node.vm.provision 'shell', name: 'init-swarm', inline: <<-SHELL
         set -e
 
-        until [ -f /tokens/worker ]; do
-          echo "waiting for /tokens/worker..."
+        until [ -f /shared/tokens/worker ]; do
+          echo "waiting for /shared/tokens/worker..."
           sleep 2
         done
 
@@ -130,7 +131,18 @@ Vagrant.configure('2') do |config|
           exit 0
         fi
 
-        docker swarm join --token $(cat /tokens/worker) #{MASTER_MANAGER['ip_addr']}:2377 || true
+        docker swarm join --token $(cat /shared/tokens/worker) #{MASTER_MANAGER['ip_addr']}:2377 || true
+      SHELL
+
+      node.vm.provision 'shell', name: 'start-stack', run: 'never', inline: <<-SHELL
+        set -e
+
+        if [ ! -f "/shared/stacks/stack.yml" ]; then
+          echo "failed to deploy stack"
+          exit 1
+        else
+
+        docker stack deploy -c /shared/stacks/stack.yml charger-stack
       SHELL
 
       node.vm.provision 'shell', name: 'rejoin-swarm', run: 'never', inline: <<-SHELL
@@ -142,12 +154,12 @@ Vagrant.configure('2') do |config|
           sleep 2
         fi
 
-        until [ -f /tokens/worker ]; do
-          echo "waiting for /tokens/worker..."
+        until [ -f /shared/tokens/worker ]; do
+          echo "waiting for /shared/tokens/worker..."
           sleep 2
         done
 
-        docker swarm join --token $(cat /tokens/worker) #{MASTER_MANAGER['ip_addr']}:2377
+        docker swarm join --token $(cat /shared/tokens/worker) #{MASTER_MANAGER['ip_addr']}:2377
       SHELL
 
       node.vm.provision 'shell', name: 'leave-swarm', run: 'never', inline: <<-SHELL
