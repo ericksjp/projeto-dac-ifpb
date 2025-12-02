@@ -17,6 +17,9 @@ cd ../charger-manager
 cd ../charger-proxy
 ./mvnw jib:build -Djib.to.image=192.168.56.32:5000/charger-proxy:latest
 
+# aplica migrations ao bd que esta rodando no manager
+PORT=8080 DB_URL=jdbc:postgresql://192.168.56.32:5432/chargerdb DB_USER=postgrau DB_PASSWORD=postgrau ./mvnw flyway:migrate
+
 # copiar o arquivo de stack para o diretório compartilhado
 cd ..
 cp stack.ex.yml vagrant-env/shared/stacks/stack.yml
