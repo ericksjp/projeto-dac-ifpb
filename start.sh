@@ -25,7 +25,20 @@ cp stack.ex.yml vagrant-env/shared/stacks/stack.yml
 cd vagrant-env
 vagrant provision manager1 --provision-with start-stack
 
-sleep 10
+# espera o serviço de bd etar disponivel
+counter=0
+
+while ! nmap -p 5432 192.168.56.32 | grep "5432/tcp open  postgresql"; do
+    counter=$((counter+1))
+
+    if [ "$counter" -eq 10 ]; then
+        echo "fiquei cansado de esperar"
+        exit 1
+    fi
+
+    echo "waiting for db to start up"
+    sleep 5
+done
 
 # aplica migrations ao bd que esta rodando no manager
 cd ../charger-proxy
