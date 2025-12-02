@@ -83,6 +83,17 @@ Vagrant.configure('2') do |config|
     m.vm.synced_folder './shared/tokens', '/shared/tokens', create: true
     m.vm.synced_folder './shared/stacks', '/shared/stacks', create: true
 
+    m.vm.provision 'shell', name: 'start-stack', run: 'never', inline: <<-SHELL
+      set -e
+
+      if [ ! -f "/shared/stacks/stack.yml" ]; then
+        echo "failed to deploy stack"
+        exit 1
+      fi
+
+      docker stack deploy -c /shared/stacks/stack.yml charger-stack
+    SHELL
+
     # manager init
     m.vm.provision 'shell', name: 'init-swarm', inline: <<-SHELL
       set -e
@@ -132,17 +143,6 @@ Vagrant.configure('2') do |config|
         fi
 
         docker swarm join --token $(cat /shared/tokens/worker) #{MASTER_MANAGER['ip_addr']}:2377 || true
-      SHELL
-
-      node.vm.provision 'shell', name: 'start-stack', run: 'never', inline: <<-SHELL
-        set -e
-
-        if [ ! -f "/shared/stacks/stack.yml" ]; then
-          echo "failed to deploy stack"
-          exit 1
-        else
-
-        docker stack deploy -c /shared/stacks/stack.yml charger-stack
       SHELL
 
       node.vm.provision 'shell', name: 'rejoin-swarm', run: 'never', inline: <<-SHELL
