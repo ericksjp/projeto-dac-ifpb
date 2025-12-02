@@ -27,6 +27,7 @@ O `start.sh` fornece um fluxo automático que:
   configurado nas VMs;
 - copia a `stack.ex.yml` para a pasta compartilhada usada pelo Vagrant;
 - provisiona o manager com `docker stack deploy` para iniciar a stack.
+- aplica as migrations ao banco de dados.
 
 ```bash
 ./start.sh
@@ -56,11 +57,18 @@ cd ../charger-proxy
    manager:
 
 ```bash
-# no host
+cd ../
 cp stack.ex.yml vagrant-env/shared/stacks/stack.yml
 
-# no Vagrant (ou via provisioner 'start-stack')
+cd vagrant-env
 vagrant provision manager1 --provision-with start-stack
+```
+
+4. Aplique as migrações ao banco de dados
+
+```bash
+cd ../charger-proxy
+PORT=8080 DB_URL=jdbc:postgresql://192.168.56.32:5432/chargerdb DB_USER=postgrau DB_PASSWORD=postgrau ./mvnw flyway:migrate
 ```
 
 #### Observações
@@ -72,15 +80,21 @@ vagrant provision manager1 --provision-with start-stack
   preferência.
 - O plugin Jib usado nos módulos permite empurrar imagens sem Docker local.
 - Para acessar as maquinas via `SSH` faça: `cd vagrant-env`, `vagrant ssh <maquina>`
+- Para aplicar as migrações é necessario esperar ate que o serviço de banco de
+  dados esteja inicializado, oque pode demorar um pouco.
 
 ## Uso
 
-- O `charger-proxy` disponibiliza um serviço SOAP.
-- O `charger-manager` consome esse serviço SOAP e expõe um endpoint REST
-  simples para testes: `GET /api/v1/hello`.
+- O **charger-proxy** disponibiliza um serviço SOAP e consome um banco de dados
+  via jdbc.
+- O **charger-manager** consome esse serviço SOAP e expõe dois endpoints REST
+  simples para testes:
+    - `POST /api/v1/messages`
+    - `GET /api/v1/messages/{id}`
 
 ```bash
-curl -sS http://192.168.56.32:8080/api/v1/hello
+curl --json '{ "message": "hello" }' http://192.168.56.32:8080/api/v1/messages
+curl http://192.168.56.32:8080/api/v1/messages/1
 ```
 
 #### Observações
