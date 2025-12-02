@@ -4,13 +4,8 @@
     targetNamespace="http://ifpb.com/charger-proxy"
     elementFormDefault="qualified">
 
-    <xs:element name="MessageRequest">
-        <xs:complexType>
-            <xs:sequence>
-                <xs:element name="message" type="xs:string"/>
-            </xs:sequence>
-        </xs:complexType>
-    </xs:element>
+    <xs:element name="MessageContent" type="xs:string"/>
+    <xs:element name="MessageId" type="xs:long"/>
 
     <xs:element name="MessageResponse">
         <xs:complexType>
