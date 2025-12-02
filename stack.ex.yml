@@ -7,6 +7,10 @@ services:
       - "8082:8082"
     environment:
       - PORT=8082
+      - DB_URL=jdbc:postgresql://postgres:5432/chargerdb
+      - DB_USER=postgrau
+      - DB_PASSWORD=postgrau
+
     networks:
       - charger-network
     deploy:
@@ -26,6 +30,8 @@ services:
 
   postgres:
     image: postgres:15-alpine
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_DB=chargerdb
       - POSTGRES_USER=postgrau
