@@ -1,6 +1,8 @@
 #!/bin/bash
 
-set -euxo pipefail
+set -euo pipefail
+
+VAGRANT_FILE="$(pwd)/vagrant-env/Vagrantfile"
 
 # entrar no diretório do Vagrant e copiar o arquivo JSON
 cd vagrant-env
@@ -9,37 +11,34 @@ cp -f vms.ex.json vms.json
 # inicializar VMs
 vagrant up
 
-# buildar e mandar as imagens para o repositorio local no manager1
+# provisionar o manager com a stack do banco de dados
+cp ../stack_files/* shared/stacks
+vagrant ssh -c "docker stack deploy -c /shared/stacks/db.yml charger-stack" manager1
 
-cd ../charger-manager
-./mvnw jib:build -Djib.to.image=192.168.56.32:5000/charger-manager:latest
+../bash/wait_for_service.sh $VAGRANT_FILE manager1 charger-stack_postgres 10 5
 
+db_ip=$(../bash/service_ip.sh $VAGRANT_FILE manager0 charger-stack_postgres)
+
+# charger-proxy
 cd ../charger-proxy
-./mvnw jib:build -Djib.to.image=192.168.56.32:5000/charger-proxy:latest
-
-# copiar o arquivo de stack para o diretório compartilhado
-cd ..
-cp stack.ex.yml vagrant-env/shared/stacks/stack.yml
-
-# provisionar o manager1 com a stack que vai inicializar os serviços
-cd vagrant-env
-vagrant provision manager1 --provision-with start-stack
-
-# espera o serviço de bd etar disponivel
-counter=0
-
-while ! nmap -p 5432 192.168.56.32 | grep "5432/tcp open  postgresql"; do
-    counter=$((counter+1))
-
-    if [ "$counter" -eq 10 ]; then
-        echo "fiquei cansado de esperar"
-        exit 1
-    fi
-
-    echo "waiting for db to start up"
-    sleep 5
-done
-
 # aplica migrations ao bd que esta rodando no manager
-cd ../charger-proxy
-PORT=8080 DB_URL=jdbc:postgresql://192.168.56.32:5432/chargerdb DB_USER=postgrau DB_PASSWORD=postgrau ./mvnw flyway:migrate
+PORT=8080 DB_URL=jdbc:postgresql://$db_ip:5432/chargerdb DB_USER=postgrau DB_PASSWORD=postgrau ./mvnw flyway:migrate
+# manda build da imagem ao registry privado
+./mvnw clean compile jib:build -Djib.to.image=192.168.56.32:5000/charger-proxy:latest
+# provisiona o manager com a stack do charger-proxy
+cd ../vagrant-env
+vagrant ssh -c "docker stack deploy -c /shared/stacks/charger-proxy.yml charger-stack" manager1
+
+../bash/wait_for_service.sh $VAGRANT_FILE manager1 charger-stack_charger-proxy 10 5
+
+proxy_ip=$(../bash/service_ip.sh $VAGRANT_FILE manager1 charger-stack_charger-proxy)
+
+echo "Charger-proxy is running on IP address: $proxy_ip"
+
+# charger-manager
+cd ../charger-manager
+# manda build da imagem ao registry privado
+./mvnw clean compile jib:build -Djib.to.image=192.168.56.32:5000/charger-manager:latest -DwsdlUrl=http://$proxy_ip:8082/ws/hello.wsdl
+# provisiona o manager com a stack do charger-manager
+cd ../vagrant-env
+vagrant ssh -c "docker stack deploy -c /shared/stacks/charger-manager.yml charger-stack" manager1
