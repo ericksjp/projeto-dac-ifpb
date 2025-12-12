@@ -10,12 +10,12 @@
 
 - `charger-manager/` — módulo Spring Boot.
 - `charger-proxy/` — módulo Spring Boot.
+- `bash/` - scripts bash de suporte que ajudam na automação.
+- `stack_files/` - arquivos de stack usados para subir serviços no docker swarm
 - `vagrant-env/` — configuração do Vagrant para criar VMs e provisionar um
   cluster (inclui `Vagrantfile`, scripts e arquivos de configuração).
 - `start.sh` — script que prepara `vms.json`, sobe as VMs, gera imagens via
-  `jib` e provisiona a stack.
-- `stack.ex.yml` — arquivo de stack que pode ser copiado para
-  `vagrant-env/shared/stacks/stack.yml` para deploy.
+  `jib` e provisiona a stack. Usa `virtualbox` como provider. 
 
 ## Start de forma automatica
 
@@ -23,11 +23,14 @@ O `start.sh` fornece um fluxo automático que:
 
 - copia `vms.ex.json` para `vms.json` dentro de `vagrant-env`;
 - executa `vagrant up` para criar as VMs configuradas;
-- builda as imagens Docker usando o plugin Jib e publica para o registry local
-  configurado nas VMs;
-- copia a `stack.ex.yml` para a pasta compartilhada usada pelo Vagrant;
-- provisiona o manager com `docker stack deploy` para iniciar a stack.
-- aplica as migrations ao banco de dados.
+- copia os arquivos de stack em `stack_files/` para `vagrant-env/shared/stacks/`;
+- sobe o serviço de banco de dados definido em
+  `vagrant-env/shared/stacks/db.yml`;
+- aplica as migrations do `charger-proxy/` ao banco de dados;
+- builda os modulos spring para imagens Docker usando o plugin Jib e publica
+  para o registry local configurado no swarm;
+- sobe os serviços `charger-proxy` e `charger-manager` usando as imagens do
+  registro local e os arquivos de stack em `vagrant-env/shared/stacks/`;
 
 ```bash
 ./start.sh
@@ -40,35 +43,71 @@ O `start.sh` fornece um fluxo automático que:
 ```bash
 cd vagrant-env
 cp vms.ex.json vms.json   # ajuste se preferir
-vagrant up
+vagrant up --provider=virtualbox # mude o provider conforme necessario
+cd ..
 ```
 
-2. Build das imagens localmente
+2. Define variáveis de ambiente necessárias e aguarda o serviço `registry`
+   iniciar:
 
 ```bash
-cd ../charger-manager
-./mvnw jib:build -Djib.to.image=192.168.56.32:5000/charger-manager:latest
-
-cd ../charger-proxy
-./mvnw jib:build -Djib.to.image=192.168.56.32:5000/charger-proxy:latest
+export VAGRANT_DIR="$(pwd)/vagrant-env"
+./bash/wait_for_service.sh $VAGRANT_DIR manager1 registry 10 5;
+export REGISTRY_IP=$(./bash/service_ip.sh $VAGRANT_DIR manager1 registry)
 ```
 
-3. Copie o `stack.yml` para `vagrant-env/shared/stacks/stack.yml` e execute no
-   manager:
+2. Copiar arquivos de stack para pasta compartilhada entre host e VM que roda
+   um swarm-manager;
 
 ```bash
-cd ../
-cp stack.ex.yml vagrant-env/shared/stacks/stack.yml
-
-cd vagrant-env
-vagrant provision manager1 --provision-with start-stack
+mkdir -p vagrant-env/shared/stacks
+cp stack_files/* vagrant-env/shared/stacks
 ```
 
-4. Aplique as migrações ao banco de dados
+3. Subir o serviço de banco de dados no cluster Docker Swarm, utilizando
+   a stack `charger-stack` e definir variavel de ambiente `DB_IP` que indica
+   a VM em que o bd está rodando:
 
 ```bash
-cd ../charger-proxy
-PORT=8080 DB_URL=jdbc:postgresql://192.168.56.32:5432/chargerdb DB_USER=postgrau DB_PASSWORD=postgrau ./mvnw flyway:migrate
+cd $VAGRANT_DIR
+vagrant ssh -c "docker stack deploy -c /shared/stacks/db.yml charger-stack" manager1;
+cd ..
+
+./bash/wait_for_service.sh $VAGRANT_DIR manager1 charger-stack_postgres 10 5;
+export DB_IP=$(./bash/service_ip.sh $VAGRANT_DIR manager1 charger-stack_postgres);
+```
+
+4. Aplicar as migrations do módulo `charger-proxy` no banco de dados, compilar
+   o módulo em uma imagem Docker, enviar a imagem para o registro do cluster
+   Swarm e subir o serviço utilizando o arquivo de stack
+   `/vagrant-env/shared/stacks/charger-proxy.yml`.
+
+```bash
+cd charger-proxy
+PORT=8080 DB_URL=jdbc:postgresql://$DB_IP:5432/chargerdb DB_USER=postgrau DB_PASSWORD=postgrau ./mvnw flyway:migrate
+./mvnw clean compile jib:build -Djib.to.image="$REGISTRY_IP:5000/charger-proxy:latest"
+
+cd $VAGRANT_DIR
+vagrant ssh -c "docker stack deploy -c /shared/stacks/charger-proxy.yml charger-stack" manager1;
+cd ..
+
+./bash/wait_for_service.sh $VAGRANT_DIR manager1 charger-stack_charger-proxy 10 5;
+export PROXY_IP=$(./bash/service_ip.sh $VAGRANT_DIR manager1 charger-stack_charger-proxy)
+```
+
+5. Compilor módulo `charger-manager` em uma imagem Docker, enviar a imagem para
+   o registro do cluster Swarm e subir o serviço utilizando o arquivo de stack
+   `/vagrant-env/shared/stacks/charger-manager.yml`.
+
+```bash
+cd charger-manager
+./mvnw clean compile jib:build -Djib.to.image="$REGISTRY_IP:5000/charger-manager:latest" -DwsdlUrl="http://$PROXY_IP:8082/ws/hello.wsdl"
+
+cd $VAGRANT_DIR
+vagrant ssh -c "docker stack deploy -c /shared/stacks/charger-manager.yml charger-stack" manager1;
+cd ..
+
+./bash/wait_for_service.sh $VAGRANT_DIR manager1 charger-stack_charger-manager 10 5;
 ```
 
 #### Observações
@@ -76,8 +115,8 @@ PORT=8080 DB_URL=jdbc:postgresql://192.168.56.32:5432/chargerdb DB_USER=postgrau
 - O arquivo `vms.json` tem que ter no mínimo 1 vm como manager;
 - O endereço do registry (`192.168.56.32:5000`) é usado como exemplo e deve ser
   ajustado conforme sua rede.
-- Você pode ajustar os arquivos `vms.json` e `stack.yml` de acordo com a sua
-  preferência.
+- Você pode ajustar os arquivos `vagrant-env/vms.json`
+  e `vagrant-env/shared/stacks/*.yml` de acordo com a sua preferência.
 - O plugin Jib usado nos módulos permite empurrar imagens sem Docker local.
 - Para acessar as maquinas via `SSH` faça: `cd vagrant-env`, `vagrant ssh <maquina>`
 - Para aplicar as migrações é necessario esperar ate que o serviço de banco de
