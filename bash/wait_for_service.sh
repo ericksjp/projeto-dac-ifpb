@@ -2,11 +2,13 @@
 
 set -euo pipefail
 
-VAGRANT_FILE="$1"
+vagrant_dir="$1"
 vm_name="$2"
 service_name="$3"
 max_retries="$4"
 wait_time="$5"
+
+cd "$vagrant_dir" || { echo "Directory $vagrant_dir does not exist."; exit 1; }
 
 vagrant ssh -c "
     counter=0
