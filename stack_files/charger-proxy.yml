@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  charger-proxy:
+    image: 127.0.0.1:5000/charger-proxy:latest
+    ports:
+      - "8082:8082"
+    environment:
+      - PORT=8082
+      - DB_URL=jdbc:postgresql://postgres:5432/chargerdb
+      - DB_USER=postgrau
+      - DB_PASSWORD=postgrau
+
+    networks:
+      - charger-network
+    deploy:
+      replicas: 2
+
+networks:
+  charger-network:
+    driver: overlay
+    attachable: true
