@@ -55,6 +55,7 @@
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>wsdl4j</groupId>
@@ -67,6 +68,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
         </dependency>
 	</dependencies>
 
@@ -86,8 +88,8 @@
                         <sources>
                                 <source>${project.basedir}/src/main/resources/ws</source>
                         </sources>
+                        <outputDirectory>${project.build.directory}/generated-sources/jaxb</outputDirectory>
                         <packageName>com.ifpb.charger_proxy.schemas</packageName>
-                        <outputDirectory>src/main/java</outputDirectory>
                         <clearOutputDir>false</clearOutputDir>
                     </configuration>
                     </execution>
