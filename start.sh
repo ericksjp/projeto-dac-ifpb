@@ -43,7 +43,7 @@ echo "Charger-proxy is running on IP address: $PROXY_IP"
 # charger-manager
 cd ../charger-manager
 # manda build da imagem ao registry privado
-./mvnw clean compile jib:build -Djib.to.image="$REGISTRY:5000/charger-manager:latest" -DwsdlUrl="http://$PROXY_IP:8082/ws/hello.wsdl"
+./mvnw clean compile jib:build -Djib.to.image="$REGISTRY:5000/charger-manager:latest"
 # provisiona o manager com a stack do charger-manager
 cd ../vagrant-env
 vagrant ssh -c "docker stack deploy -c /shared/stacks/charger-manager.yml charger-stack" manager1

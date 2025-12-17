@@ -101,7 +101,7 @@ export PROXY_IP=$(./bash/service_ip.sh $VAGRANT_DIR manager1 charger-stack_charg
 
 ```bash
 cd charger-manager
-./mvnw clean compile jib:build -Djib.to.image="$REGISTRY_IP:5000/charger-manager:latest" -DwsdlUrl="http://$PROXY_IP:8082/ws/hello.wsdl"
+./mvnw clean compile jib:build -Djib.to.image="$REGISTRY_IP:5000/charger-manager:latest"
 
 cd $VAGRANT_DIR
 vagrant ssh -c "docker stack deploy -c /shared/stacks/charger-manager.yml charger-stack" manager1;
