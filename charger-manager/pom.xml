@@ -28,6 +28,7 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+        <soap.contract.version>v1</soap.contract.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -68,21 +69,22 @@
             <plugin>
                 <groupId>com.sun.xml.ws</groupId>
                 <artifactId>jaxws-maven-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>4.0.3</version>
                 <executions>
                     <execution>
+                        <id>generate-ws-client</id>
+                        <phase>generate-sources</phase>
                         <goals>
                             <goal>wsimport</goal>
                         </goals>
                     </execution>
                 </executions>
                 <configuration>
-                    <packageName>com.ifpb.charger_manager.wsdl</packageName>
+                    <packageName>com.ifpb.charger_manager.ws.${soap.contract.version}</packageName>
                     <wsdlUrls>
-                        <wsdlUrl>${wsdlUrl}</wsdlUrl>
+                        <wsdlUrl>${project.basedir}/src/main/resources/wsdl/hello-${soap.contract.version}.wsdl</wsdlUrl>
                     </wsdlUrls>
-                    <sourceDestDir>${sourcesDir}</sourceDestDir>
-                    <destDir>${classesDir}</destDir>
+                    <sourceDestDir>${project.build.directory}/generated-sources/wsimport</sourceDestDir>
                     <extension>true</extension>
                 </configuration>
             </plugin>

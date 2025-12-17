@@ -7,8 +7,8 @@ import org.springframework.ws.soap.client.core.SoapActionCallback;
 import jakarta.xml.bind.JAXBElement;
 import lombok.RequiredArgsConstructor;
 
-import com.ifpb.charger_manager.wsdl.MessageResponse;
-import com.ifpb.charger_manager.wsdl.ObjectFactory;
+import com.ifpb.charger_manager.ws.v1.MessageResponse;
+import com.ifpb.charger_manager.ws.v1.ObjectFactory;
 
 @Component
 @RequiredArgsConstructor
