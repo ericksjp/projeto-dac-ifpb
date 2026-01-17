@@ -24,21 +24,6 @@ public class WebServiceConfig {
         return new ServletRegistrationBean<>(servlet, "/ws/*");
     }
 
-    @Bean(name = "hello")
-    public DefaultWsdl11Definition defaultWsdl11Definition(XsdSchema helloSchema) {
-        DefaultWsdl11Definition def = new DefaultWsdl11Definition();
-        def.setPortTypeName("HelloPort");
-        def.setLocationUri("/ws/hello");
-        def.setTargetNamespace("http://ifpb.com/charger-proxy");
-        def.setSchema(helloSchema);
-        return def;
-    }
-
-    @Bean
-    public XsdSchema helloSchema() {
-        return new SimpleXsdSchema(new ClassPathResource("/ws/hello.xsd"));
-    }
-
     @Bean(name = "customer")
     public DefaultWsdl11Definition customerWsdl11Definition(XsdSchema customerSchema) {
         DefaultWsdl11Definition def = new DefaultWsdl11Definition();
