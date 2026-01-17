@@ -1,0 +1,58 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+           xmlns:tns="http://ifpb.com/charger-proxy"
+           targetNamespace="http://ifpb.com/charger-proxy" 
+           elementFormDefault="qualified">
+
+    <!-- Customer Operations -->
+    <xs:element name="createCustomerRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="name" type="xs:string"/>
+                <xs:element name="email" type="xs:string"/>
+                <xs:element name="cpfCnpj" type="xs:string"/>
+                <xs:element name="phone" type="xs:string" minOccurs="0"/>
+                <xs:element name="mobilePhone" type="xs:string" minOccurs="0"/>
+                <xs:element name="address" type="xs:string" minOccurs="0"/>
+                <xs:element name="addressNumber" type="xs:string" minOccurs="0"/>
+                <xs:element name="complement" type="xs:string" minOccurs="0"/>
+                <xs:element name="province" type="xs:string" minOccurs="0"/>
+                <xs:element name="postalCode" type="xs:string" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="createCustomerResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="customerId" type="xs:string"/>
+                <xs:element name="name" type="xs:string"/>
+                <xs:element name="email" type="xs:string"/>
+                <xs:element name="cpfCnpj" type="xs:string"/>
+                <xs:element name="dateCreated" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="getCustomerRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="customerId" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="getCustomerResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="customerId" type="xs:string"/>
+                <xs:element name="name" type="xs:string"/>
+                <xs:element name="email" type="xs:string"/>
+                <xs:element name="cpfCnpj" type="xs:string"/>
+                <xs:element name="phone" type="xs:string" minOccurs="0"/>
+                <xs:element name="mobilePhone" type="xs:string" minOccurs="0"/>
+                <xs:element name="dateCreated" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>
