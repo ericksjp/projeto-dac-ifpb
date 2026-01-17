@@ -29,5 +29,9 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### VS Code ###
+### Editors ###
 .vscode/
+.vim/
+
+### Env ###
+.env
