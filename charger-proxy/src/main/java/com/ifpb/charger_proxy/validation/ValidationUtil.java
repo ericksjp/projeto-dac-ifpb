@@ -1,0 +1,87 @@
+package com.ifpb.charger_proxy.validation;
+
+import com.ifpb.charger_proxy.exception.InvalidRequestException;
+
+import io.github.felseje.cnpj.CnpjUtils;
+import io.github.felseje.cpf.CpfUtils;
+import io.github.felseje.cpf.exception.InvalidCpfException;
+
+import org.springframework.stereotype.Component;
+
+import java.util.regex.Pattern;
+
+/**
+ * Utilitário para validação de dados de entrada
+ */
+@Component
+public class ValidationUtil {
+
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+        "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+    );
+
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^\\d{10,11}$");
+    
+    /**
+     * Valida se a string não é nula ou vazia
+     */
+    public void validateRequired(String value, String fieldName) {
+        if (value == null || value.trim().isEmpty()) {
+            throw new InvalidRequestException(fieldName, "campo obrigatório");
+        }
+    }
+
+    /**
+     * Valida formato de email
+     */
+    public void validateEmail(String email) {
+        validateRequired(email, "email");
+        if (!EMAIL_PATTERN.matcher(email).matches()) {
+            throw new InvalidRequestException("email", "formato inválido");
+        }
+    }
+
+    /**
+     * Valida CPF ou CNPJ
+     */
+    public void validateCpfCnpj(String cpfCnpj) {
+        validateRequired(cpfCnpj, "cpfCnpj");
+
+        // remove caracteres não numéricos
+        String numbers = cpfCnpj.replaceAll("[^0-9]", "");
+        
+        if (numbers.length() != 11 && numbers.length() != 14) {
+            throw new InvalidRequestException("cpfCnpj", "deve conter 11 dígitos (CPF) ou 14 dígitos (CNPJ)");
+        }
+        
+        // valida cpf
+        if (numbers.length() == 11) {
+            try {
+                CpfUtils.validate(cpfCnpj);
+            } catch (IllegalArgumentException | InvalidCpfException e) {
+                throw new InvalidRequestException("cpfCnpj", "CPF inválido");
+            }
+        }
+        
+        // valida cnpj
+        if (numbers.length() == 14) {
+            try {
+                CnpjUtils.validate(cpfCnpj);
+            } catch (IllegalArgumentException | InvalidCpfException e) {
+                throw new InvalidRequestException("cpfCnpj", "CNPJ inválido");
+            }
+        }
+    }
+
+    /**
+     * Valida formato de telefone
+     */
+    public void validatePhone(String phone) {
+        if (phone != null && !phone.trim().isEmpty()) {
+            String numbers = phone.replaceAll("[^0-9]", "");
+            if (!PHONE_PATTERN.matcher(numbers).matches()) {
+                throw new InvalidRequestException("phone", "deve conter 10 ou 11 dígitos");
+            }
+        }
+    }
+}
