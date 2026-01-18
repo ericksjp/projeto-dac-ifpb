@@ -38,5 +38,20 @@ public class WebServiceConfig {
     public XsdSchema customerSchema() {
         return new SimpleXsdSchema(new ClassPathResource("/ws/customer.xsd"));
     }
+
+    @Bean(name = "charge")
+    public DefaultWsdl11Definition chargeWsdl11Definition(XsdSchema chargeSchema) {
+        DefaultWsdl11Definition def = new DefaultWsdl11Definition();
+        def.setPortTypeName("ChargePort");
+        def.setLocationUri("/ws/charge");
+        def.setTargetNamespace("http://ifpb.com/charger-proxy");
+        def.setSchema(chargeSchema);
+        return def;
+    }
+
+    @Bean
+    public XsdSchema chargeSchema() {
+        return new SimpleXsdSchema(new ClassPathResource("/ws/charge.xsd"));
+    }
 }
 
