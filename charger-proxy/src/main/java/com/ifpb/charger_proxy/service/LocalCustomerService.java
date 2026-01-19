@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class LocalCustomerService {
 
-    private final CustomerService customerService; 
+    private final CustomerService customerService;
 
     /**
      * Cadastra um novo cliente no ASAAS
@@ -26,18 +26,14 @@ public class LocalCustomerService {
      * @param name        nome do cliente
      * @param email       email do cliente
      * @param cpfCnpj     CPF ou CNPJ do cliente
-     * @param phone       telefone fixo
-     * @param mobilePhone telefone celular
      * @return resposta do ASAAS com ID do cliente criado
      * @throws InvalidRequestException se os dados forem inválidos
-     * @throws AsaasClientException se houver erro na comunicação com ASAAS
+     * @throws AsaasClientException    se houver erro na comunicação com ASAAS
      */
     public CustomerGetResponseDto createCustomer(
             String name,
             String email,
-            String cpfCnpj,
-            String phone,
-            String mobilePhone) {
+            String cpfCnpj) {
 
         log.info("Creating customer: {} - {}", email, cpfCnpj);
 
@@ -46,20 +42,18 @@ public class LocalCustomerService {
                     .name(name)
                     .email(email)
                     .cpfCnpj(cpfCnpj)
-                    .phone(phone)
-                    .mobilePhone(mobilePhone)
                     .notificationDisabled(false)
                     .build();
 
             CustomerGetResponseDto response = customerService.createNewCustomer(customerSaveRequestDto);
-            
+
             if (response == null) {
                 throw new AsaasClientException("ASAAS retornou resposta nula ao criar cliente");
             }
-            
+
             log.info("Customer created successfully with ID: {}", response.getId());
             return response;
-            
+
         } catch (IllegalArgumentException e) {
             log.error("Invalid data for customer creation: {}", e.getMessage(), e);
             throw new InvalidRequestException("Dados inválidos para criação de cliente: " + e.getMessage());
@@ -77,21 +71,21 @@ public class LocalCustomerService {
      * @param customerId ID do cliente no ASAAS
      * @return dados do cliente
      * @throws CustomerNotFoundException se o cliente não for encontrado
-     * @throws AsaasClientException se houver erro na comunicação com ASAAS
+     * @throws AsaasClientException      se houver erro na comunicação com ASAAS
      */
     public CustomerGetResponseDto getCustomer(String customerId) {
         log.info("Getting customer: {}", customerId);
-        
+
         try {
             CustomerGetResponseDto response = customerService.retrieveASingleCustomer(customerId);
-            
+
             if (response == null) {
                 throw new CustomerNotFoundException(customerId);
             }
-            
+
             log.debug("Customer retrieved successfully: {}", customerId);
             return response;
-            
+
         } catch (CustomerNotFoundException e) {
             throw e;
         } catch (Exception e) {

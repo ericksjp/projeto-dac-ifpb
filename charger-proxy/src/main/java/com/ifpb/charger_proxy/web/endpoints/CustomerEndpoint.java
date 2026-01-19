@@ -37,15 +37,11 @@ public class CustomerEndpoint {
             validationUtil.validateRequired(request.getName(), "name");
             validationUtil.validateEmail(request.getEmail());
             validationUtil.validateCpfCnpj(request.getCpfCnpj());
-            validationUtil.validatePhone(request.getPhone());
-            validationUtil.validatePhone(request.getMobilePhone());
 
             CustomerGetResponseDto asaasResponse = customerService.createCustomer(
                     request.getName(),
                     request.getEmail(),
-                    request.getCpfCnpj(),
-                    request.getPhone(),
-                    request.getMobilePhone());
+                    request.getCpfCnpj());
 
             CreateCustomerResponse response = new CreateCustomerResponse();
             response.setCustomerId(asaasResponse.getId());
@@ -81,8 +77,6 @@ public class CustomerEndpoint {
             response.setName(asaasResponse.getName());
             response.setEmail(asaasResponse.getEmail());
             response.setCpfCnpj(asaasResponse.getCpfCnpj());
-            response.setPhone(asaasResponse.getPhone());
-            response.setMobilePhone(asaasResponse.getMobilePhone());
             response.setDateCreated(asaasResponse.getDateCreated());
 
             return response;
