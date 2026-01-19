@@ -11,7 +11,6 @@ import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
 import org.springframework.ws.server.endpoint.annotation.RequestPayload;
 import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
@@ -66,18 +65,14 @@ public class ChargeEndpoint {
                 );
             }
 
-            // Monta response
             CreateChargeResponse response = new CreateChargeResponse();
             response.setChargeId(asaasResponse.getId());
-            response.setCustomerId(asaasResponse.getCustomer());
-            response.setBillingType(asaasResponse.getBillingType().toString());
-            response.setValue(BigDecimal.valueOf(asaasResponse.getValue()));
-            response.setDueDate(asaasResponse.getDueDate());
+            response.setInstallmentId(asaasResponse.getInstallment());
             response.setStatus(asaasResponse.getStatus().toString());
             response.setInvoiceUrl(asaasResponse.getInvoiceUrl());
             response.setBankSlipUrl(asaasResponse.getBankSlipUrl());
             response.setPixQrCode(asaasResponse.getPixQrCodeId());
-            response.setDateCreated(asaasResponse.getDateCreated());
+            response.setCreatedAt(asaasResponse.getDateCreated());
 
             log.info("Charge created successfully with ID: {}", asaasResponse.getId());
             return response;
