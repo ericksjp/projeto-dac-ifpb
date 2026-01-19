@@ -87,38 +87,4 @@ public class ChargeEndpoint {
             throw e;
         }
     }
-
-    /**
-     * Endpoint SOAP para buscar uma cobrança pelo ID
-     */
-    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "getChargeRequest")
-    @ResponsePayload
-    public GetChargeResponse getCharge(@RequestPayload GetChargeRequest request) {
-        log.info("Received getCharge request for ID: {}", request.getChargeId());
-
-        try {
-            validationUtil.validateRequired(request.getChargeId(), "chargeId");
-            
-            PaymentGetResponseDto asaasResponse = chargeService.getCharge(request.getChargeId());
-
-            GetChargeResponse response = new GetChargeResponse();
-            response.setChargeId(asaasResponse.getId());
-            response.setCustomerId(asaasResponse.getCustomer());
-            response.setBillingType(asaasResponse.getBillingType().toString());
-            response.setValue(BigDecimal.valueOf(asaasResponse.getValue()));
-            response.setDueDate(asaasResponse.getDueDate());
-            response.setStatus(asaasResponse.getStatus().toString());
-            response.setDescription(asaasResponse.getDescription());
-            response.setInvoiceUrl(asaasResponse.getInvoiceUrl());
-            response.setBankSlipUrl(asaasResponse.getBankSlipUrl());
-            response.setPixQrCode(asaasResponse.getPixQrCodeId());
-            response.setDateCreated(asaasResponse.getDateCreated());
-
-            return response;
-            
-        } catch (Exception e) {
-            log.error("Error getting charge: {}", e.getMessage(), e);
-            throw e;
-        }
-    }
 }

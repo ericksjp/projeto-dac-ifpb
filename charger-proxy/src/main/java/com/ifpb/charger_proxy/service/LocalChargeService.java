@@ -4,9 +4,7 @@ import com.asaas.apisdk.models.PaymentGetResponseDto;
 import com.asaas.apisdk.models.PaymentSaveRequestDto;
 import com.asaas.apisdk.models.PaymentSaveRequestBillingType;
 import com.asaas.apisdk.services.PaymentService;
-import com.ifpb.charger_proxy.exception.AsaasClientException;
 import com.ifpb.charger_proxy.exception.ChargeCreationException;
-import com.ifpb.charger_proxy.exception.ChargeNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -108,32 +106,6 @@ public class LocalChargeService {
     }
 
     /**
-     * Busca uma cobrança pelo ID no ASAAS
-     * 
-     * @param chargeId ID da cobrança no ASAAS
-     * @return dados da cobrança
-     */
-    public PaymentGetResponseDto getCharge(String chargeId) {
-        log.info("Getting charge: {}", chargeId);
-        
-        try {
-            PaymentGetResponseDto response = paymentService.retrieveASinglePayment(chargeId);
-            
-            if (response == null) {
-                throw new ChargeNotFoundException(chargeId);
-            }
-            
-            return response;
-            
-        } catch (ChargeNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error getting charge {}: {}", chargeId, e.getMessage(), e);
-            throw new AsaasClientException("Erro ao buscar cobrança: " + e.getMessage(), e);
-        }
-    }
-
-    /**
      * Converte string de billing type para o enum do SDK
      */
     private PaymentSaveRequestBillingType convertBillingType(String billingType) {
@@ -145,4 +117,5 @@ public class LocalChargeService {
             default -> throw new IllegalArgumentException("Billing type inválido: " + billingType);
         };
     }
+
 }
