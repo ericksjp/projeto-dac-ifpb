@@ -19,7 +19,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="customerExternalId" type="xs:string"/>
-                <xs:element name="externalCreatedAt" type="xs:dateTime"/>
+                <xs:element name="externalCreatedAt" type="xs:string"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>

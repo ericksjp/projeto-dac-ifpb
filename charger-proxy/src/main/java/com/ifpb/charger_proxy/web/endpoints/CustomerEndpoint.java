@@ -48,7 +48,7 @@ public class CustomerEndpoint {
 
             RegisterCustomerResponse response = new RegisterCustomerResponse();
             response.setCustomerExternalId(asaasResponse.getId());
-            response.setCustomerExternalId(asaasResponse.getDateCreated());
+            response.setExternalCreatedAt(asaasResponse.getDateCreated());
 
             log.info("Customer registered successfully with ID: {}", asaasResponse.getId());
             return response;
