@@ -4,6 +4,7 @@ import com.asaas.apisdk.models.CustomerGetResponseDto;
 import com.ifpb.charger_proxy.schemas.*;
 import com.ifpb.charger_proxy.service.LocalCustomerService;
 import com.ifpb.charger_proxy.validation.ValidationUtil;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
@@ -25,64 +26,34 @@ public class CustomerEndpoint {
     private final ValidationUtil validationUtil;
 
     /**
-     * Endpoint SOAP para criar um novo cliente
+     * Endpoint SOAP para registar um cliente em um provedor externo
      */
-    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "createCustomerRequest")
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "registerCustomerRequest")
     @ResponsePayload
-    public CreateCustomerResponse createCustomer(@RequestPayload CreateCustomerRequest request) {
-        log.info("Received createCustomer request for email: {}", request.getEmail());
+    public RegisterCustomerResponse registerCustomer(@RequestPayload RegisterCustomerRequest request) {
+        log.info("Received registerCustomer request for id: {}", request.getId());
 
         try {
             // Validações de entrada
+            validationUtil.validateRequired(request.getId(), "id");
             validationUtil.validateRequired(request.getName(), "name");
             validationUtil.validateEmail(request.getEmail());
             validationUtil.validateCpfCnpj(request.getCpfCnpj());
 
-            CustomerGetResponseDto asaasResponse = customerService.createCustomer(
+            CustomerGetResponseDto asaasResponse = customerService.register(
+                    request.getId(),
                     request.getName(),
                     request.getEmail(),
                     request.getCpfCnpj());
 
-            CreateCustomerResponse response = new CreateCustomerResponse();
-            response.setCustomerId(asaasResponse.getId());
-            response.setName(asaasResponse.getName());
-            response.setEmail(asaasResponse.getEmail());
-            response.setCpfCnpj(asaasResponse.getCpfCnpj());
-            response.setDateCreated(asaasResponse.getDateCreated());
+            RegisterCustomerResponse response = new RegisterCustomerResponse();
+            response.setCustomerExternalId(asaasResponse.getId());
+            response.setCustomerExternalId(asaasResponse.getDateCreated());
 
-            log.info("Customer created successfully with ID: {}", asaasResponse.getId());
+            log.info("Customer registered successfully with ID: {}", asaasResponse.getId());
             return response;
-            
         } catch (Exception e) {
             log.error("Error creating customer: {}", e.getMessage(), e);
-            throw e;
-        }
-    }
-
-    /**
-     * Endpoint SOAP para buscar um cliente pelo ID
-     */
-    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "getCustomerRequest")
-    @ResponsePayload
-    public GetCustomerResponse getCustomer(@RequestPayload GetCustomerRequest request) {
-        log.info("Received getCustomer request for ID: {}", request.getCustomerId());
-
-        try {
-            validationUtil.validateRequired(request.getCustomerId(), "customerId");
-            
-            CustomerGetResponseDto asaasResponse = customerService.getCustomer(request.getCustomerId());
-
-            GetCustomerResponse response = new GetCustomerResponse();
-            response.setCustomerId(asaasResponse.getId());
-            response.setName(asaasResponse.getName());
-            response.setEmail(asaasResponse.getEmail());
-            response.setCpfCnpj(asaasResponse.getCpfCnpj());
-            response.setDateCreated(asaasResponse.getDateCreated());
-
-            return response;
-            
-        } catch (Exception e) {
-            log.error("Error getting customer: {}", e.getMessage(), e);
             throw e;
         }
     }

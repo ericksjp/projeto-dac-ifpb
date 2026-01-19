@@ -1,12 +1,13 @@
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://ifpb.com/charger-proxy"
            xmlns:tns="http://ifpb.com/charger-proxy"
-           targetNamespace="http://ifpb.com/charger-proxy" 
            elementFormDefault="qualified">
 
-    <!-- Customer Operations -->
-    <xs:element name="createCustomerRequest">
+    <!-- Register customer in external provider -->
+    <xs:element name="registerCustomerRequest">
         <xs:complexType>
             <xs:sequence>
+                <xs:element name="id" type="xs:string"/>
                 <xs:element name="name" type="xs:string"/>
                 <xs:element name="cpfCnpj" type="xs:string"/>
                 <xs:element name="email" type="xs:string"/>
@@ -14,34 +15,11 @@
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="createCustomerResponse">
+    <xs:element name="registerCustomerResponse">
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="customerId" type="xs:string"/>
-                <xs:element name="name" type="xs:string"/>
-                <xs:element name="email" type="xs:string"/>
-                <xs:element name="cpfCnpj" type="xs:string"/>
-                <xs:element name="dateCreated" type="xs:string"/>
-            </xs:sequence>
-        </xs:complexType>
-    </xs:element>
-
-    <xs:element name="getCustomerRequest">
-        <xs:complexType>
-            <xs:sequence>
-                <xs:element name="customerId" type="xs:string"/>
-            </xs:sequence>
-        </xs:complexType>
-    </xs:element>
-
-    <xs:element name="getCustomerResponse">
-        <xs:complexType>
-            <xs:sequence>
-                <xs:element name="customerId" type="xs:string"/>
-                <xs:element name="name" type="xs:string"/>
-                <xs:element name="email" type="xs:string"/>
-                <xs:element name="cpfCnpj" type="xs:string"/>
-                <xs:element name="dateCreated" type="xs:string"/>
+                <xs:element name="customerExternalId" type="xs:string"/>
+                <xs:element name="externalCreatedAt" type="xs:dateTime"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>

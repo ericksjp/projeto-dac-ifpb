@@ -4,7 +4,6 @@ import com.asaas.apisdk.models.CustomerGetResponseDto;
 import com.asaas.apisdk.models.CustomerSaveRequestDto;
 import com.asaas.apisdk.services.CustomerService;
 import com.ifpb.charger_proxy.exception.AsaasClientException;
-import com.ifpb.charger_proxy.exception.CustomerNotFoundException;
 import com.ifpb.charger_proxy.exception.InvalidRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +29,8 @@ public class LocalCustomerService {
      * @throws InvalidRequestException se os dados forem inválidos
      * @throws AsaasClientException    se houver erro na comunicação com ASAAS
      */
-    public CustomerGetResponseDto createCustomer(
+    public CustomerGetResponseDto register(
+            String id,
             String name,
             String email,
             String cpfCnpj) {
@@ -42,6 +42,7 @@ public class LocalCustomerService {
                     .name(name)
                     .email(email)
                     .cpfCnpj(cpfCnpj)
+                    .externalReference(id)
                     .notificationDisabled(false)
                     .build();
 
@@ -62,35 +63,6 @@ public class LocalCustomerService {
         } catch (Exception e) {
             log.error("Error creating customer {}: {}", email, e.getMessage(), e);
             throw new AsaasClientException("Erro ao criar cliente no ASAAS: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Busca um cliente pelo ID no ASAAS
-     * 
-     * @param customerId ID do cliente no ASAAS
-     * @return dados do cliente
-     * @throws CustomerNotFoundException se o cliente não for encontrado
-     * @throws AsaasClientException      se houver erro na comunicação com ASAAS
-     */
-    public CustomerGetResponseDto getCustomer(String customerId) {
-        log.info("Getting customer: {}", customerId);
-
-        try {
-            CustomerGetResponseDto response = customerService.retrieveASingleCustomer(customerId);
-
-            if (response == null) {
-                throw new CustomerNotFoundException(customerId);
-            }
-
-            log.debug("Customer retrieved successfully: {}", customerId);
-            return response;
-
-        } catch (CustomerNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error retrieving customer {}: {}", customerId, e.getMessage(), e);
-            throw new AsaasClientException("Erro ao buscar cliente no ASAAS: " + e.getMessage(), e);
         }
     }
 }
