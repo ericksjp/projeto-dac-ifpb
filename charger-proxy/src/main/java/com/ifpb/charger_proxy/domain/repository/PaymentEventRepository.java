@@ -7,9 +7,11 @@ import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
-import com.ifpb.charger_proxy.domain.PaymentEvent;
+import com.ifpb.charger_proxy.domain.model.PaymentEvent;
 
 public interface PaymentEventRepository extends CrudRepository<PaymentEvent, UUID> {
+    boolean existsByProviderEventId(String providerEventId);
+
     @Query("""
             SELECT *
             FROM payment_events

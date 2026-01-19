@@ -1,8 +1,8 @@
-package com.ifpb.charger_proxy.web.endpoints;
+package com.ifpb.charger_proxy.web.rest;
 
 import com.asaas.apisdk.models.PaymentGetResponseDto;
 import com.ifpb.charger_proxy.schemas.*;
-import com.ifpb.charger_proxy.service.LocalChargeService;
+import com.ifpb.charger_proxy.application.charger.LocalChargeService;
 import com.ifpb.charger_proxy.validation.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +23,8 @@ public class ChargeEndpoint {
 
     private static final String NAMESPACE_URI = "http://ifpb.com/charger-proxy";
     
-    private final LocalChargeService chargeService;
     private final ValidationUtil validationUtil;
+    private final LocalChargeService chargeService;
 
     /**
      * Endpoint SOAP para criar uma nova cobrança

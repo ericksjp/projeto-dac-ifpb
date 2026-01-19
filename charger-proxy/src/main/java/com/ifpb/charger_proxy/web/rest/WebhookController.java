@@ -1,4 +1,4 @@
-package com.ifpb.charger_proxy.webhook.controller;
+package com.ifpb.charger_proxy.web.rest;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ifpb.charger_proxy.webhook.dto.AsaasWebhookPayload;
-import com.ifpb.charger_proxy.webhook.service.WebhookProcessorService;
+import com.ifpb.charger_proxy.application.webhook.WebhookProcessorService;
+import com.ifpb.charger_proxy.web.dto.AsaasWebhookPayload;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

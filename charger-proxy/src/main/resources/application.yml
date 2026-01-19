@@ -1,17 +1,28 @@
 server:
-    port: ${PORT}
+  port: ${PORT}
 
 spring:
-    application:
-        name: charger-proxy
-    datasource:
-        url: ${DB_URL}
-        username: ${DB_USER}
-        password: ${DB_PASSWORD}
-        driver-class-name: org.postgresql.Driver
+  application:
+    name: charger-proxy
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
 
 # Configurações do ASAAS
 asaas:
-    api:
-        key: ${ASAAS_API_KEY}
-    env: ${ASSAS_ENV:SANDBOX}
+  api:
+    key: ${ASAAS_API_KEY}
+  env: ${ASSAS_ENV:SANDBOX}
+
+# Endpoint o manger vai receber os eventos
+charger-manager:
+  payment-events:
+    publish-url: ${CHARGER_MANAGER_PAYMENT_EVENTS_PUBLISH_URL}
+
+# Configuração do scheduler que vai disparar os eventos de pagamento
+payment-event:
+  consumer:
+    batch-size: ${PAYMENT_EVENTS_CONSUMER_BATCH_SIZE:10}
+    fixed-delay-ms: ${PAYMENT_EVENTS_CONSUMER_DELAY_MS:60000}

@@ -1,4 +1,4 @@
-package com.ifpb.charger_proxy.service;
+package com.ifpb.charger_proxy.application.charger;
 
 import com.asaas.apisdk.models.PaymentGetResponseDto;
 import com.asaas.apisdk.models.PaymentSaveRequestDto;

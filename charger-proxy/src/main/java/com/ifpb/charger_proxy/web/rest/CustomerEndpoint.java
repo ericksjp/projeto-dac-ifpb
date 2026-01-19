@@ -1,8 +1,8 @@
-package com.ifpb.charger_proxy.web.endpoints;
+package com.ifpb.charger_proxy.web.rest;
 
 import com.asaas.apisdk.models.CustomerGetResponseDto;
+import com.ifpb.charger_proxy.application.charger.LocalCustomerService;
 import com.ifpb.charger_proxy.schemas.*;
-import com.ifpb.charger_proxy.service.LocalCustomerService;
 import com.ifpb.charger_proxy.validation.ValidationUtil;
 
 import lombok.RequiredArgsConstructor;

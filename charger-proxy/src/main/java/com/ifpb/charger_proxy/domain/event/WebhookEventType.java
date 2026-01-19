@@ -1,4 +1,4 @@
-package com.ifpb.charger_proxy.webhook.dto;
+package com.ifpb.charger_proxy.domain.event;
 
 /**
  * Tipos de eventos que o ASAAS pode enviar via webhook
