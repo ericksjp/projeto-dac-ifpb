@@ -13,6 +13,7 @@ services:
       - CHARGER_MANAGER_PAYMENT_EVENTS_PUBLISH_URL=http://charger-manager:8081/api/events/charger-proxy
       - PAYMENT_EVENTS_CONSUMER_BATCH_SIZE=10
       - PAYMENT_EVENTS_CONSUMER_DELAY_MS=60000
+      - ASAAS_AUTH_TOKEN=balaclava
 
     networks:
       - charger-network
