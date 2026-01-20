@@ -1,10 +1,14 @@
-# Install Docker
-apt-get update
-apt-get install -y ca-certificates curl gnupg git avahi-daemon libnss-mdns
-install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-chmod a+r /etc/apt/keyrings/docker.gpg
-echo "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-apt-get update
-apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-usermod -aG docker vagrant
+#!/usr/bin/env bash
+set -e
+
+echo "=== docker install script"
+
+if command -v docker &>/dev/null; then
+  echo "docker already installed"
+  exit 0
+fi
+
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker vagrant
+
+echo "=== docker install done"
