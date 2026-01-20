@@ -1,0 +1,19 @@
+services:
+  cloudflare-tunnel:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --url http://charger-proxy:8082
+    networks:
+      - charger-network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.role == manager
+    tty: true
+    stdin_open: true
+
+networks:
+  charger-network:
+    external: true
