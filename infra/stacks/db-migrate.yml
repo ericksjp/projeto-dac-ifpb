@@ -5,9 +5,8 @@ services:
       - -url=jdbc:postgresql://postgres:5432/chargerdb
       - -user=postgrau
       - -password=postgrau
+      - -locations=/shared/migrations/
       - migrate
-    volumes:
-      - ./migrations:/flyway/sql
     networks:
       - charger-network
     deploy:
