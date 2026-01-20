@@ -15,6 +15,7 @@ asaas:
   api:
     key: ${ASAAS_API_KEY}
   env: ${ASSAS_ENV:SANDBOX}
+  auth-token: ${ASAAS_AUTH_TOKEN}
 
 # Endpoint o manger vai receber os eventos
 charger-manager:
