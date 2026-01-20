@@ -24,10 +24,10 @@ services:
         reservations:
           memory: 256M
 
+
 networks:
   charger-network:
-    driver: overlay
-    attachable: true
+    external: true
 
 volumes:
   postgres_data:

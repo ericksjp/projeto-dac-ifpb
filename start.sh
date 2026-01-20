@@ -20,6 +20,9 @@ cp -r ../infra/migrations shared/
 # inicializar VMs
 vagrant up --provider=virtualbox
 
+# criar network
+vagrant ssh manager1 -c 'docker network inspect charger-network >/dev/null 2>&1 || docker network create --driver overlay --attachable charger-network'
+
 #=== PROVISIONAR BANCO DE DADOS ===#
 
 # provisionar o manager com a stack do banco de dados
@@ -31,6 +34,10 @@ DB_IP=$($SERVICE_IP_SH $VAGRANT_DIR manager1 charger-stack_postgres)
 
 # aplicar migrations ao bd
 vagrant ssh -c "docker stack deploy -c /shared/stacks/db-migrate.yml charger-stack" manager1
+
+sleep 5
+
+vagrant ssc -c "docker service logs charger-stack_db-migrate --raw" manager1
 
 #=== PROVISIONAR REGISTER LOCAL ===#
 
@@ -60,7 +67,7 @@ echo "Charger-proxy is running on IP address: $PROXY_IP"
 #=== PROVISIONAR CLOUDFLARE TUNNEL ===#
 
 # sobe serviço do cloudfaret tunnel
-vagrant ssh -c "docker stack deploy -c /shared/stacks/cloudfare-tunnel.yml charger-stack" manager1
+vagrant ssh -c "docker stack deploy -c /shared/stacks/cloudflare-tunnel.yml charger-stack" manager1
 $WAIT_FOR_SERVICE_SH $VAGRANT_DIR manager1 charger-stack_cloudflare-tunnel 10 5
 
 # pega o endereço público do tunnel

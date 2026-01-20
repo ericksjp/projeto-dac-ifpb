@@ -8,8 +8,8 @@ services:
       - DB_URL=jdbc:postgresql://postgres:5432/chargerdb
       - DB_USER=postgrau
       - DB_PASSWORD=postgrau
-      - ASSAS_API_KEY=your_api_key
-      - ASSAS_ENV=SANDBOX
+      - ASAAS_API_KEY=${ASAAS_API_KEY}
+      - ASAAS_ENV=SANDBOX
       - CHARGER_MANAGER_PAYMENT_EVENTS_PUBLISH_URL=http://charger-manager:8081/api/events/charger-proxy
       - PAYMENT_EVENTS_CONSUMER_BATCH_SIZE=10
       - PAYMENT_EVENTS_CONSUMER_DELAY_MS=60000
@@ -19,7 +19,7 @@ services:
     deploy:
       replicas: 2
 
+
 networks:
   charger-network:
-    driver: overlay
-    attachable: true
+    external: true
