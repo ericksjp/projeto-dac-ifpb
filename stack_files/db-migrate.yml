@@ -1,0 +1,16 @@
+services:
+  db-migrate:
+    image: flyway/flyway:10
+    command:
+      - -url=jdbc:postgresql://postgres:5432/chargerdb
+      - -user=postgrau
+      - -password=postgrau
+      - migrate
+    volumes:
+      - ./migrations:/flyway/sql
+    networks:
+      - charger-network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: none
