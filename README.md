@@ -10,8 +10,10 @@
 
 - `charger-manager/` — módulo Spring Boot.
 - `charger-proxy/` — módulo Spring Boot.
-- `bash/` - scripts bash de suporte que ajudam na automação.
-- `stack_files/` - arquivos de stack usados para subir serviços no docker swarm
+- `infra/` - pasta com arquivos de infraestrutura.
+  - `infra/stacks/` - arquivos de stack usados para subir serviços no Docker Swarm.
+  - `infra/scripts/` - scripts bash de suporte que ajudam na automação.
+  - `infra/migrations/` - migrations de banco de dados.
 - `vagrant-env/` — configuração do Vagrant para criar VMs e provisionar um
   cluster (inclui `Vagrantfile`, scripts e arquivos de configuração).
 - `start.sh` — script que prepara `vms.json`, sobe as VMs, gera imagens via
@@ -22,15 +24,15 @@
 O `start.sh` fornece um fluxo automático que:
 
 - copia `vms.ex.json` para `vms.json` dentro de `vagrant-env`;
+- copia arquivos de `infra/stacks/` e `infra/migrations/` para `vagrant-env/shared/`;
 - executa `vagrant up` para criar as VMs configuradas;
-- copia os arquivos de stack em `stack_files/` para `vagrant-env/shared/stacks/`;
-- sobe o serviço de banco de dados definido em
-  `vagrant-env/shared/stacks/db.yml`;
-- aplica as migrations do `charger-proxy/` ao banco de dados;
-- builda os modulos spring para imagens Docker usando o plugin Jib e publica
-  para o registry local configurado no swarm;
-- sobe os serviços `charger-proxy` e `charger-manager` usando as imagens do
-  registro local e os arquivos de stack em `vagrant-env/shared/stacks/`;
+- cria uma rede overlay `charger-network`;
+- provisiona o serviço de banco de dados via `vagrant-env/shared/stacks/db.yml`;
+- aplica as migrations do banco via `vagrant-env/shared/stacks/db-migrate.yml`;
+- provisiona um registro Docker local para armazenar imagens;
+- builda o módulo `charger-proxy` para uma imagem Docker usando o plugin Jib e publica no registro local;
+- provisiona o serviço `charger-proxy` usando `vagrant-env/shared/stacks/charger-proxy.yml`;
+- provisiona o serviço Cloudflare Tunnel para exposição externa via `vagrant-env/shared/stacks/cloudflare-tunnel.yml`;
 
 ```bash
 ./start.sh
@@ -43,61 +45,78 @@ O `start.sh` fornece um fluxo automático que:
 ```bash
 cd vagrant-env
 cp vms.ex.json vms.json   # ajuste se preferir
+cp -r ../infra/stacks shared/
+cp -r ../infra/migrations shared/
 vagrant up --provider=virtualbox # mude o provider conforme necessario
 cd ..
 ```
 
-2. Define variáveis de ambiente necessárias e aguarda o serviço `registry`
-   iniciar:
+2. Cria a rede overlay e define variáveis de ambiente necessárias:
 
 ```bash
 export VAGRANT_DIR="$(pwd)/vagrant-env"
-./bash/wait_for_service.sh $VAGRANT_DIR manager1 registry 10 5;
-export REGISTRY_IP=$(./bash/service_ip.sh $VAGRANT_DIR manager1 registry)
-```
-
-2. Copiar arquivos de stack para pasta compartilhada entre host e VM que roda
-   um swarm-manager;
-
-```bash
-mkdir -p vagrant-env/shared/stacks
-cp stack_files/* vagrant-env/shared/stacks
+vagrant ssh manager1 -c 'docker network create --driver overlay --attachable charger-network'
 ```
 
 3. Subir o serviço de banco de dados no cluster Docker Swarm, utilizando
-   a stack `charger-stack` e definir variavel de ambiente `DB_IP` que indica
-   a VM em que o bd está rodando:
+    a stack `charger-stack` e definir variavel de ambiente `DB_IP` que indica
+    a VM em que o bd está rodando:
 
 ```bash
 cd $VAGRANT_DIR
 vagrant ssh -c "docker stack deploy -c /shared/stacks/db.yml charger-stack" manager1;
 cd ..
 
-./bash/wait_for_service.sh $VAGRANT_DIR manager1 charger-stack_postgres 10 5;
-export DB_IP=$(./bash/service_ip.sh $VAGRANT_DIR manager1 charger-stack_postgres);
+./infra/scripts/wait_for_service.sh $VAGRANT_DIR manager1 charger-stack_postgres 10 5;
+export DB_IP=$(./infra/scripts/service_ip.sh $VAGRANT_DIR manager1 charger-stack_postgres);
 ```
 
-4. Aplicar as migrations do módulo `charger-proxy` no banco de dados, compilar
-   o módulo em uma imagem Docker, enviar a imagem para o registro do cluster
-   Swarm e subir o serviço utilizando o arquivo de stack
-   `/vagrant-env/shared/stacks/charger-proxy.yml`.
+4. Aplicar as migrations do banco de dados:
+
+```bash
+cd $VAGRANT_DIR
+vagrant ssh -c "docker stack deploy -c /shared/stacks/db-migrate.yml charger-stack" manager1;
+cd ..
+```
+
+5. Provisionar o registro Docker local:
+
+```bash
+cd $VAGRANT_DIR
+vagrant ssh -c "docker service create --name localregistry --publish published=5000,target=5000 registry:2" manager1
+cd ..
+
+./infra/scripts/wait_for_service.sh $VAGRANT_DIR manager1 localregistry 10 5;
+export REGISTRY_IP=$(./infra/scripts/service_ip.sh $VAGRANT_DIR manager1 localregistry)
+```
+
+6. Compilar o módulo `charger-proxy` em uma imagem Docker, enviar a imagem para o registro do cluster
+    Swarm e subir o serviço utilizando o arquivo de stack
+    `/vagrant-env/shared/stacks/charger-proxy.yml`. Defina `ASAAS_API_KEY` se necessário.
 
 ```bash
 cd charger-proxy
-PORT=8080 DB_URL=jdbc:postgresql://$DB_IP:5432/chargerdb DB_USER=postgrau DB_PASSWORD=postgrau ./mvnw flyway:migrate
 ./mvnw clean compile jib:build -Djib.to.image="$REGISTRY_IP:5000/charger-proxy:latest"
 
 cd $VAGRANT_DIR
-vagrant ssh -c "docker stack deploy -c /shared/stacks/charger-proxy.yml charger-stack" manager1;
+vagrant ssh -c "env ASAAS_API_KEY=${ASAAS_API_KEY} docker stack deploy -c /shared/stacks/charger-proxy.yml charger-stack" manager1;
 cd ..
 
-./bash/wait_for_service.sh $VAGRANT_DIR manager1 charger-stack_charger-proxy 10 5;
-export PROXY_IP=$(./bash/service_ip.sh $VAGRANT_DIR manager1 charger-stack_charger-proxy)
+./infra/scripts/wait_for_service.sh $VAGRANT_DIR manager1 charger-stack_charger-proxy 10 5;
+export PROXY_IP=$(./infra/scripts/service_ip.sh $VAGRANT_DIR manager1 charger-stack_charger-proxy)
 ```
 
-5. Compilor módulo `charger-manager` em uma imagem Docker, enviar a imagem para
-   o registro do cluster Swarm e subir o serviço utilizando o arquivo de stack
-   `/vagrant-env/shared/stacks/charger-manager.yml`.
+7. Provisionar o serviço Cloudflare Tunnel para exposição externa:
+
+```bash
+cd $VAGRANT_DIR
+vagrant ssh -c "docker stack deploy -c /shared/stacks/cloudflare-tunnel.yml charger-stack" manager1;
+cd ..
+```
+
+8. (Opcional) Compilar módulo `charger-manager` em uma imagem Docker, enviar a imagem para
+    o registro do cluster Swarm e subir o serviço utilizando o arquivo de stack
+    `/vagrant-env/shared/stacks/charger-manager.yml`.
 
 ```bash
 cd charger-manager
@@ -107,7 +126,7 @@ cd $VAGRANT_DIR
 vagrant ssh -c "docker stack deploy -c /shared/stacks/charger-manager.yml charger-stack" manager1;
 cd ..
 
-./bash/wait_for_service.sh $VAGRANT_DIR manager1 charger-stack_charger-manager 10 5;
+./infra/scripts/wait_for_service.sh $VAGRANT_DIR manager1 charger-stack_charger-manager 10 5;
 ```
 
 #### Observações
@@ -124,12 +143,15 @@ cd ..
 
 ## Uso
 
-- O **charger-proxy** disponibiliza um serviço SOAP e consome um banco de dados
-  via jdbc.
+- O **charger-proxy** disponibiliza um serviço SOAP, consome um banco de dados
+  via JDBC e integra com a API do Asaas para webhooks de pagamento. Requer a variável
+  de ambiente `ASAAS_API_KEY` para autenticação.
 - O **charger-manager** consome esse serviço SOAP e expõe dois endpoints REST
   simples para testes:
     - `POST /api/v1/messages`
     - `GET /api/v1/messages/{id}`
+- O serviço Cloudflare Tunnel expõe os serviços externamente através de um endereço
+  HTTPS público, facilitando o acesso remoto e testes.
 
 ```bash
 curl --json '{ "message": "hello" }' http://192.168.56.32:8080/api/v1/messages
