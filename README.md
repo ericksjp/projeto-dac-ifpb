@@ -1,5 +1,10 @@
 # projeto-dac-ifpb
 
+> [!IMPORTANT]
+>
+> - O único módulo funcional de acordo com os requisitos é o `charger-proxy` (implementado por [Erick Ribeiro](https://github.com/ericksjp)).
+> - O módulo `charger-manager`, que é de responsabilidade dos colegas Tasso e Gerlândio, não foi implementado.
+
 ## Pré-requisitos
 
 - `JDK 21`
