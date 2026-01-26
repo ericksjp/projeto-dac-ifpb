@@ -41,7 +41,7 @@ vagrant ssh -c "docker service logs charger-stack_db-migrate --raw" manager1
 
 #=== PROVISIONAR REGISTER LOCAL ===#
 
-vagrant ssh -c "if ! docker service ls --format '{{.Name}}' | grep -q '^localregistry$'; then docker service create --name localregistry --publish published=5000,target=5000 registry:2; fi" manager1
+vagrant ssh -c "if ! docker service ls --format '{{.Name}}' | grep -q '^localregistry$'; then docker service create --name localregistry --publish published=5000,target=5000 --constraint='node.hostname==manager1' registry:2; fi" manager1
 
 # ip do register 
 $WAIT_FOR_SERVICE_SH $VAGRANT_DIR manager1 localregistry 10 5
