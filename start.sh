@@ -37,7 +37,7 @@ vagrant ssh -c "docker stack deploy -c /shared/stacks/db-migrate.yml charger-sta
 
 sleep 5
 
-vagrant ssc -c "docker service logs charger-stack_db-migrate --raw" manager1
+vagrant ssh -c "docker service logs charger-stack_db-migrate --raw" manager1
 
 #=== PROVISIONAR REGISTER LOCAL ===#
 
