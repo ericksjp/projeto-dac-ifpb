@@ -47,7 +47,7 @@ public class PaymentEventConsumer {
                     event.getId(),
                     event.getProviderEventId(),
                     event.getEventType(),
-                    event.getPaymentRawPayload(),
+                    event.getPayload(),
                     event.getReceivedAt());
 
             chargerManagerClient.send(dto, () -> markEventAsProcessed(event), error -> LogError(error, event));

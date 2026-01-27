@@ -12,7 +12,6 @@ import com.ifpb.charger_proxy.web.dto.AsaasWebhookPayload;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * Serviço responsável por processar webhooks recebidos do Asaas
@@ -23,8 +22,6 @@ import tools.jackson.databind.ObjectMapper;
 public class WebhookProcessorService {
 
     private final PaymentEventRepository paymentEventRepository;
-    private final ObjectMapper objectMapper;
-
     /**
      * Processa webhook recebido
      */
@@ -53,7 +50,7 @@ public class WebhookProcessorService {
             event.setProviderEventId(payload.getId());
             event.setEventType(payload.getEvent());
             event.setReceivedAt(LocalDateTime.now());
-            event.setPaymentRawPayload(objectMapper.writeValueAsString(payload.getPayment()));
+            event.setPayload(payload.getPayload());
             event.setProcessed(false);
 
             paymentEventRepository.save(event);

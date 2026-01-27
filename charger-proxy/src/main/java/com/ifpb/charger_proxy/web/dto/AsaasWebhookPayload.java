@@ -1,10 +1,11 @@
 package com.ifpb.charger_proxy.web.dto;
 
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Payload recebido do webhook do ASAAS
@@ -23,5 +24,5 @@ public class AsaasWebhookPayload {
     private String dateCreated;
 
     @JsonProperty("payment")
-    private ObjectNode payment;
+    private Map<String, Object> payload;
 }

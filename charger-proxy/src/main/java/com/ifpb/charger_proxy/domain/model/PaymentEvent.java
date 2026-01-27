@@ -1,6 +1,7 @@
 package com.ifpb.charger_proxy.domain.model;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.data.annotation.Id;
@@ -12,7 +13,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 
 /**
  * Representa um evento de pagamento recebido via webhook do asaas
@@ -33,10 +33,10 @@ public class PaymentEvent {
     private String eventType;
 
     /**
-     * Payload JSON do webhook (armazenado como texto)
+     * Payload JSON do webhook
      */
-    @Column("payment_raw_payload")
-    private String paymentRawPayload;
+    @Column("payload")
+    private Map<String, Object> payload;
 
     @Column("processed")
     private boolean processed;

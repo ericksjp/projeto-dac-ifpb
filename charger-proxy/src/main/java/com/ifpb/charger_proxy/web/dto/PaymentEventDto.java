@@ -1,6 +1,7 @@
 package com.ifpb.charger_proxy.web.dto;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 import lombok.AllArgsConstructor;
@@ -19,7 +20,6 @@ public class PaymentEventDto {
     private UUID id;
     private String providerEventId;
     private String eventType;
-    private String paymentRawPayload;
+    private Map<String, Object> payload;
     private LocalDateTime receivedAt;
 }
-
