@@ -25,7 +25,7 @@ public class WebServiceConfig {
     
     @Bean
     public ChargePort chargePort() throws Exception {
-        URL wsdlUrl = new URL(chargeServiceUrl + "?wsdl");
+        URL wsdlUrl = new URL(chargeServiceUrl + ".wsdl");
         ChargePortService service = new ChargePortService(wsdlUrl);
         ChargePort port = service.getChargePortSoap11();
         
@@ -41,7 +41,7 @@ public class WebServiceConfig {
     
     @Bean
     public CustomerPort customerPort() throws Exception {
-        URL wsdlUrl = new URL(customerServiceUrl + "?wsdl");
+        URL wsdlUrl = new URL(customerServiceUrl + ".wsdl");
         CustomerPortService service = new CustomerPortService(wsdlUrl);
         CustomerPort port = service.getCustomerPortSoap11();
         

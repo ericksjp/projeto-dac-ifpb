@@ -1,30 +1,46 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" 
-                  xmlns:sch="http://ifpb.com/charger-proxy" 
-                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" 
-                  xmlns:tns="http://ifpb.com/charger-proxy" 
-                  targetNamespace="http://ifpb.com/charger-proxy">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:sch="http://ifpb.com/charger-proxy" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://ifpb.com/charger-proxy" targetNamespace="http://ifpb.com/charger-proxy">
   <wsdl:types>
-    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-      <xs:import namespace="http://ifpb.com/charger-proxy" schemaLocation="customer.xsd"/>
-    </xs:schema>
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://ifpb.com/charger-proxy">
+
+    <!-- Register customer in external provider -->
+    <xs:element name="registerCustomerRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="id" type="xs:string"/>
+                <xs:element name="name" type="xs:string"/>
+                <xs:element name="cpfCnpj" type="xs:string"/>
+                <xs:element name="email" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="registerCustomerResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="customerExternalId" type="xs:string"/>
+                <xs:element name="externalCreatedAt" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>
   </wsdl:types>
-  
   <wsdl:message name="registerCustomerRequest">
-    <wsdl:part element="tns:registerCustomerRequest" name="registerCustomerRequest"/>
+    <wsdl:part element="tns:registerCustomerRequest" name="registerCustomerRequest">
+    </wsdl:part>
   </wsdl:message>
-  
   <wsdl:message name="registerCustomerResponse">
-    <wsdl:part element="tns:registerCustomerResponse" name="registerCustomerResponse"/>
+    <wsdl:part element="tns:registerCustomerResponse" name="registerCustomerResponse">
+    </wsdl:part>
   </wsdl:message>
-  
   <wsdl:portType name="CustomerPort">
     <wsdl:operation name="registerCustomer">
-      <wsdl:input message="tns:registerCustomerRequest" name="registerCustomerRequest"/>
-      <wsdl:output message="tns:registerCustomerResponse" name="registerCustomerResponse"/>
+      <wsdl:input message="tns:registerCustomerRequest" name="registerCustomerRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:registerCustomerResponse" name="registerCustomerResponse">
+    </wsdl:output>
     </wsdl:operation>
   </wsdl:portType>
-  
   <wsdl:binding name="CustomerPortSoap11" type="tns:CustomerPort">
     <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
     <wsdl:operation name="registerCustomer">
@@ -37,10 +53,9 @@
       </wsdl:output>
     </wsdl:operation>
   </wsdl:binding>
-  
   <wsdl:service name="CustomerPortService">
     <wsdl:port binding="tns:CustomerPortSoap11" name="CustomerPortSoap11">
-      <soap:address location="http://localhost:8082/ws/customer"/>
+      <soap:address location="http://192.168.56.32:8082/ws/customer"/>
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>
