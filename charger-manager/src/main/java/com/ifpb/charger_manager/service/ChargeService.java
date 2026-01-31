@@ -99,6 +99,7 @@ public class ChargeService {
             charge.setUpdatedAt(LocalDateTime.now());
             
             charge = chargeRepository.save(charge);
+            charge.setNew(false);
             
             // Envia notificação por e-mail
             emailService.sendChargeStatusUpdateEmail(charge);
@@ -167,6 +168,7 @@ public class ChargeService {
         charge.setUpdatedAt(LocalDateTime.now());
         
         charge = chargeRepository.save(charge);
+        charge.setNew(false);
         
         // Envia notificação por e-mail
         emailService.sendChargeStatusUpdateEmail(charge);
@@ -187,6 +189,7 @@ public class ChargeService {
         charge.setUpdatedAt(LocalDateTime.now());
         
         charge = chargeRepository.save(charge);
+        charge.setNew(false);
         
         log.info("Charge status updated successfully: id={}, status={}", id, newStatus);
         return charge;
@@ -206,6 +209,7 @@ public class ChargeService {
         charge.setUpdatedAt(LocalDateTime.now());
         
         charge = chargeRepository.save(charge);
+        charge.setNew(false);
         
         log.info("Charge status updated successfully by externalId: externalId={}, status={}", externalId, newStatus);
         return charge;

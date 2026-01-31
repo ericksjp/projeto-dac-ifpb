@@ -4,6 +4,9 @@ import com.ifpb.charger_manager.domain.enums.BillingType;
 import com.ifpb.charger_manager.domain.enums.ChargeStatus;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.PersistenceCreator;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.math.BigDecimal;
@@ -15,10 +18,39 @@ import java.util.UUID;
  * Entidade que representa uma cobrança no sistema
  */
 @Table("charges")
-public class Charge {
+public class Charge implements Persistable<UUID> {
     
     @Id
     private UUID id;
+
+    @Transient
+    private boolean isNew = true;
+
+    public Charge() {
+        this.isNew = true;
+    }
+
+    @PersistenceCreator
+    public Charge(UUID id, UUID customerId, String externalId, String installmentId, BillingType billingType, BigDecimal value, LocalDate dueDate, String description, ChargeStatus status, String invoiceUrl, String bankSlipUrl, String pixQrCode, Integer installmentCount, Integer installmentNumber, LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime cancelledAt) {
+        this.id = id;
+        this.customerId = customerId;
+        this.externalId = externalId;
+        this.installmentId = installmentId;
+        this.billingType = billingType;
+        this.value = value;
+        this.dueDate = dueDate;
+        this.description = description;
+        this.status = status;
+        this.invoiceUrl = invoiceUrl;
+        this.bankSlipUrl = bankSlipUrl;
+        this.pixQrCode = pixQrCode;
+        this.installmentCount = installmentCount;
+        this.installmentNumber = installmentNumber;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.cancelledAt = cancelledAt;
+        this.isNew = false;
+    }
     
     private UUID customerId;
     
@@ -49,6 +81,7 @@ public class Charge {
     private LocalDateTime updatedAt;
     private LocalDateTime cancelledAt;
 
+    @Override
     public UUID getId() {
         return id;
     }
@@ -183,5 +216,15 @@ public class Charge {
 
     public void setCancelledAt(LocalDateTime cancelledAt) {
         this.cancelledAt = cancelledAt;
+    }
+
+    @Override
+    @Transient
+    public boolean isNew() {
+        return isNew;
+    }
+
+    public void setNew(boolean isNew) {
+        this.isNew = isNew;
     }
 }

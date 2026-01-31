@@ -79,6 +79,7 @@ public class PaymentNotificationService {
         notification.setProcessedAt(LocalDateTime.now());
         
         notification = notificationRepository.save(notification);
+        notification.setNew(false);
         
         log.info("Payment event processed successfully: id={}", notification.getId());
         return notification;

@@ -62,6 +62,7 @@ public class CustomerService {
         
         // Salva localmente
         customer = customerRepository.save(customer);
+        customer.setNew(false);
         
         try {
             // Registra no Asaas via charge-proxy
@@ -75,6 +76,7 @@ public class CustomerService {
             // Atualiza com o ID externo do Asaas
             customer.setExternalId(response.getCustomerExternalId());
             customer = customerRepository.save(customer);
+            customer.setNew(false);
             
             log.info("Customer created successfully: id={}, externalId={}", 
                      customer.getId(), customer.getExternalId());
@@ -136,6 +138,7 @@ public class CustomerService {
         
         customer.setUpdatedAt(LocalDateTime.now());
         customer = customerRepository.save(customer);
+        customer.setNew(false);
         
         log.info("Customer updated successfully: id={}", id);
         return customer;
