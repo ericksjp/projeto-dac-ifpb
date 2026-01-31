@@ -12,6 +12,10 @@ services:
       - charger-network
     deploy:
       replicas: 2
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+        delay: 10s
 
 networks:
   charger-network:
