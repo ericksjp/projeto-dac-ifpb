@@ -81,7 +81,8 @@ cd ../vagrant-env
 vagrant ssh -c "docker stack deploy -c /shared/stacks/charger-proxy.yml charger-stack" manager1
 
 # espera o charger-proxy ficar disponível
-$WAIT_FOR_SERVICE_SH $VAGRANT_DIR manager1 charger-stack_charger-proxy 10 5 3 "curl -fs http://127.0.0.1:8082/api/webhook/health"
+$WAIT_FOR_SERVICE_SH $VAGRANT_DIR manager1 charger-stack_charger-proxy 10 5 3 \
+"curl -fs http://127.0.0.1:8082/api/health | grep status...UP"
 # pega o ip do charger-proxy
 PROXY_IP=$($SERVICE_IP_SH $VAGRANT_DIR manager1 charger-stack_charger-proxy)
 
