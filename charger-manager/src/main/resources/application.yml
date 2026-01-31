@@ -9,8 +9,27 @@ spring:
     username: ${DB_USER:charger}
     password: ${DB_PASSWORD:charger}
     driver-class-name: org.postgresql.Driver
+  mail:
+    host: ${MAIL_HOST:sandbox.smtp.mailtrap.io}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        debug: ${MAIL_DEBUG:true}
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+  notifications:
+    email:
+      from: ${MAIL_FROM:no-reply@charger-manager.com}
+      subject-prefix: ${MAIL_SUBJECT_PREFIX:[Charger Manager] }
 
-# URLs dos serviços SOAP do charger-proxy
 charger-proxy:
   soap:
     charge-url: ${CHARGER_PROXY_CHARGE_URL:http://localhost:8082/ws/charge}
