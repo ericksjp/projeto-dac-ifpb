@@ -49,7 +49,7 @@ vagrant ssh -c "docker stack deploy -c /shared/stacks/db.yml charger-stack" mana
 
 # esperar o banco de dados ficar disponível
 $WAIT_FOR_SERVICE_SH "$VAGRANT_DIR" manager1 charger-stack_postgres 10 5 3 \
-'docker service ps --filter "desired-state=running" --format "{{.CurrentState}}" charger-stack_postgres 2>/dev/null | grep -q "Running"'
+'docker service ps --filter "desired-state=running" --format "{{.CurrentState}}" charger-stack_postgres 2>/dev/null | grep "Running"'
 # pegar o ip do banco de dados
 DB_IP=$($SERVICE_IP_SH $VAGRANT_DIR manager1 charger-stack_postgres)
 
