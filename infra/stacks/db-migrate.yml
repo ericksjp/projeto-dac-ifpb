@@ -1,12 +1,9 @@
 services:
   db-migrate:
     image: flyway/flyway:10
-    command:
-      - -url=jdbc:postgresql://charger-stack_postgres:5432/chargerdb
-      - -user=postgrau
-      - -password=postgrau
-      - -locations=filesystem:/shared/migrations
-      - migrate
+    env_file:
+      - ../envs/db.env
+    command: migrate
     networks:
       - charger-network
     volumes:

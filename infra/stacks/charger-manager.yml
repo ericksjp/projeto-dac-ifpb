@@ -1,13 +1,10 @@
-version: '3.8'
-
 services:
   charger-manager:
     image: 127.0.0.1:5000/charger-manager:latest
     ports:
       - "8080:8080"
-    environment:
-      - PORT=8080
-      - WS_URL=http://charger-proxy:8082/ws
+    env_file:
+        - /shared/envs/manager.env
     networks:
       - charger-network
     deploy:

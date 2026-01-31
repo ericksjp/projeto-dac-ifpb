@@ -6,12 +6,25 @@ VAGRANT_DIR="$(pwd)/vagrant-env"
 WAIT_FOR_SERVICE_SH="$(pwd)/infra/scripts/wait_for_service.sh"
 SERVICE_IP_SH="$(pwd)/infra/scripts/service_ip.sh"
 
-if [ -z "${ASAAS_API_KEY:-}" ]; then
-  echo "Error: ASAAS_API_KEY environment variable is not set."
-  exit 1
-fi
+# caminhos dos arquivos de ambiente
 
-API_KEY="$ASAAS_API_KEY"
+DB_ENV="./infra/envs/db.env"
+MANAGER_ENV="./infra/envs/manager.env"
+PROXY_ENV="./infra/envs/proxy.env"
+
+# verifica cada arquivo
+if [ ! -f "$DB_ENV" ]; then
+    echo "Error: db.env não encontrado em $DB_ENV"
+    exit 1
+elif [ ! -f "$MANAGER_ENV" ]; then
+    echo "Error: manager.env não encontrado em $MANAGER_ENV"
+    exit 1
+elif [ ! -f "$PROXY_ENV" ]; then
+    echo "Error: proxy.env não encontrado em $PROXY_ENV"
+    exit 1
+else
+    echo "todos os arquivos de ambiente encontrados!"
+fi    
 
 #=== INICIALIZAR VMs ===#he
 
@@ -21,6 +34,7 @@ cp -f vms.ex.json vms.json
 
 cp -r ../infra/stacks shared/
 cp -r ../infra/migrations shared/
+cp ../infra/envs/*.env shared/envs/
 
 # inicializar VMs
 vagrant up --provider=virtualbox
@@ -42,7 +56,7 @@ DB_IP=$($SERVICE_IP_SH $VAGRANT_DIR manager1 charger-stack_postgres)
 # aplicar migrations no banco de dados
 vagrant ssh -c "docker stack deploy -c /shared/stacks/db-migrate.yml charger-stack" manager1
 # esperar as migrations terminarem
-$WAIT_FOR_SERVICE_SH $VAGRANT_DIR manager1 localregistry 10 3 1 \
+$WAIT_FOR_SERVICE_SH $VAGRANT_DIR manager1 charger-stack_db-migrate 10 3 1 \
 "docker service ps --filter 'desired-state=shutdown' --format '{{.CurrentState}}' charger-stack_db-migrate 2>/dev/null | grep -q 'Complete'"
 
 #=== PROVISIONAR REGISTER LOCAL ===#
@@ -64,7 +78,7 @@ cd ../charger-proxy
 ./mvnw clean compile jib:build -Djib.to.image="$REGISTRY:5000/charger-proxy:latest"
 # provisiona o manager com a stack do charger-proxy
 cd ../vagrant-env
-vagrant ssh -c "env ASAAS_API_KEY='$API_KEY' docker stack deploy -c /shared/stacks/charger-proxy.yml charger-stack" manager1
+vagrant ssh -c "docker stack deploy -c /shared/stacks/charger-proxy.yml charger-stack" manager1
 
 # espera o charger-proxy ficar disponível
 $WAIT_FOR_SERVICE_SH $VAGRANT_DIR manager1 charger-stack_charger-proxy 10 5 3 "curl -fs http://127.0.0.1:8082/api/webhook/health"
@@ -93,6 +107,8 @@ cd ../charger-manager
 # provisiona o manager com a stack do charger-manager
 cd ../vagrant-env
 vagrant ssh -c "docker stack deploy -c /shared/stacks/charger-manager.yml charger-stack" manager1
+$WAIT_FOR_SERVICE_SH $VAGRANT_DIR manager1 charger-stack_charger-manager 10 5 3 \
+"curl -fs http://127.0.0.1:8080/api/health | grep status...UP"
 cd ..
 
 echo "its all good"

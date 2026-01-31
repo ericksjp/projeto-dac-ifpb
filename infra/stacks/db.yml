@@ -1,14 +1,10 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15-alpine
     ports:
       - "5432:5432"
-    environment:
-      - POSTGRES_DB=chargerdb
-      - POSTGRES_USER=postgrau
-      - POSTGRES_PASSWORD=postgrau
+    env_file:
+        - /shared/envs/db.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:

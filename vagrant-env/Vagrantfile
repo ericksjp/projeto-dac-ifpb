@@ -85,6 +85,7 @@ Vagrant.configure('2') do |config|
     m.vm.synced_folder './shared/tokens', '/shared/tokens', create: true
     m.vm.synced_folder './shared/stacks', '/shared/stacks', create: true
     m.vm.synced_folder './shared/migrations', '/shared/migrations', create: true
+    m.vm.synced_folder './shared/envs', '/shared/envs', create: true
 
     # manager init
     m.vm.provision 'shell', name: 'init-swarm', inline: <<-SHELL

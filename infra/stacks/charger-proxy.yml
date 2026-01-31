@@ -3,18 +3,8 @@ services:
     image: 127.0.0.1:5000/charger-proxy:latest
     ports:
       - "8082:8082"
-    environment:
-      - PORT=8082
-      - DB_URL=jdbc:postgresql://postgres:5432/chargerdb
-      - DB_USER=postgrau
-      - DB_PASSWORD=postgrau
-      - ASAAS_API_KEY=${ASAAS_API_KEY}
-      - ASAAS_ENV=SANDBOX
-      - CHARGER_MANAGER_PAYMENT_EVENTS_PUBLISH_URL=http://charger-manager:8081/api/events/charger-proxy
-      - PAYMENT_EVENTS_CONSUMER_BATCH_SIZE=10
-      - PAYMENT_EVENTS_CONSUMER_DELAY_MS=60000
-      - ASAAS_AUTH_TOKEN=balaclava
-
+    env_file:
+        - /shared/envs/proxy.env
     networks:
       - charger-network
     deploy:
