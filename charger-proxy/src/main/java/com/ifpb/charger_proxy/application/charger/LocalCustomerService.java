@@ -43,7 +43,7 @@ public class LocalCustomerService {
                     .email(email)
                     .cpfCnpj(cpfCnpj)
                     .externalReference(id)
-                    .notificationDisabled(false)
+                    .notificationDisabled(true)
                     .build();
 
             CustomerGetResponseDto response = customerService.createNewCustomer(customerSaveRequestDto);
