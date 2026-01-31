@@ -96,7 +96,7 @@ vagrant ssh -c "docker stack deploy -c /shared/stacks/cloudflare-tunnel.yml char
 $WAIT_FOR_SERVICE_SH $VAGRANT_DIR manager1 charger-stack_cloudflare-tunnel 10 5 3 \
 "docker service ps --filter 'desired-state=running' --format '{{.CurrentState}}' charger-stack_cloudflare-tunnel 2>/dev/null | grep -q 'Running'"
 # pega o endereço público do tunnel
-PUBLIC_ADDRESS=$(vagrant ssh manager1 -c "docker service logs charger-stack_cloudflare-tunnel --raw" | grep -m 1 " |  https://" | awk '{print $4}')
+PUBLIC_ADDRESS=$(vagrant ssh -c "docker service logs charger-stack_cloudflare-tunnel --raw --tail 50 | grep ' |  https://' | head -n 1 | awk '{print \$4}'" manager1)
 echo "===== Cloudflare Tunnel Public Address: $PUBLIC_ADDRESS"
 
 #=== PROVISIONAR CHARGER MANAGER ===#
