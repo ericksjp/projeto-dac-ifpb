@@ -37,7 +37,23 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-json</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webservices</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jdbc</artifactId>
 		</dependency>
 
 		<dependency>
@@ -48,9 +64,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -67,26 +82,60 @@
 	<build>
 		<plugins>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-sources/wsimport</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>com.sun.xml.ws</groupId>
                 <artifactId>jaxws-maven-plugin</artifactId>
                 <version>4.0.3</version>
                 <executions>
                     <execution>
-                        <id>generate-ws-client</id>
+                        <id>generate-charge-ws-client</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>wsimport</goal>
                         </goals>
+                        <configuration>
+                            <packageName>com.ifpb.charger_manager.ws.charge.${soap.contract.version}</packageName>
+                            <wsdlUrls>
+                                <wsdlUrl>${project.basedir}/src/main/resources/wsdl/charge-${soap.contract.version}.wsdl</wsdlUrl>
+                            </wsdlUrls>
+                            <sourceDestDir>${project.build.directory}/generated-sources/wsimport</sourceDestDir>
+                            <extension>true</extension>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-customer-ws-client</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>wsimport</goal>
+                        </goals>
+                        <configuration>
+                            <packageName>com.ifpb.charger_manager.ws.customer.${soap.contract.version}</packageName>
+                            <wsdlUrls>
+                                <wsdlUrl>${project.basedir}/src/main/resources/wsdl/customer-${soap.contract.version}.wsdl</wsdlUrl>
+                            </wsdlUrls>
+                            <sourceDestDir>${project.build.directory}/generated-sources/wsimport</sourceDestDir>
+                            <extension>true</extension>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <packageName>com.ifpb.charger_manager.ws.${soap.contract.version}</packageName>
-                    <wsdlUrls>
-                        <wsdlUrl>${project.basedir}/src/main/resources/wsdl/hello-${soap.contract.version}.wsdl</wsdlUrl>
-                    </wsdlUrls>
-                    <sourceDestDir>${project.build.directory}/generated-sources/wsimport</sourceDestDir>
-                    <extension>true</extension>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>
@@ -100,27 +149,14 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<annotationProcessorPaths>
-						<path>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</path>
-					</annotationProcessorPaths>
+					<source>21</source>
+					<target>21</target>
 				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<excludes>
-						<exclude>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</exclude>
-					</excludes>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
-
 </project>

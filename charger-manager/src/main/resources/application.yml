@@ -1,8 +1,17 @@
 server:
-  port: ${PORT}
+  port: ${PORT:8080}
+
 spring:
   application:
     name: charger-manager
-soap:
-  service:
-    url: ${WS_URL}
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/charger_db}
+    username: ${DB_USER:charger}
+    password: ${DB_PASSWORD:charger}
+    driver-class-name: org.postgresql.Driver
+
+# URLs dos serviços SOAP do charger-proxy
+charger-proxy:
+  soap:
+    charge-url: ${CHARGER_PROXY_CHARGE_URL:http://localhost:8082/ws/charge}
+    customer-url: ${CHARGER_PROXY_CUSTOMER_URL:http://localhost:8082/ws/customer}

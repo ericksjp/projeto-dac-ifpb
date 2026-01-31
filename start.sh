@@ -6,7 +6,7 @@ VAGRANT_DIR="$(pwd)/vagrant-env"
 WAIT_FOR_SERVICE_SH="$(pwd)/infra/scripts/wait_for_service.sh"
 SERVICE_IP_SH="$(pwd)/infra/scripts/service_ip.sh"
 
-API_KEY="$ASAAS_API_KEY"
+API_KEY="$$aact_hmlg_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjA2ZmFkM2YxLWU5NmMtNDEwMi04ODIyLTk1MmRjMDA4NDEzMjo6JGFhY2hfZmE3MjM1YzYtYzcyOS00N2YyLWFhYWYtODg4ZWQxYzRkMTdk"
 
 #=== INICIALIZAR VMs ===#he
 
@@ -76,14 +76,14 @@ echo "===== Cloudflare Tunnel Public Address: $PUBLIC_ADDRESS"
 
 #=== PROVISIONAR CHARGER MANAGER ===#
 
-# # charger-manager
-# cd ../charger-manager
-# # manda build da imagem ao registry privado
-# ./mvnw clean compile jib:build -Djib.to.image="$REGISTRY:5000/charger-manager:latest"
-# # provisiona o manager com a stack do charger-manager
-# cd ../vagrant-env
-# vagrant ssh -c "docker stack deploy -c /shared/stacks/charger-manager.yml charger-stack" manager1
-# cd ..
+# charger-manager
+cd ../charger-manager
+# manda build da imagem ao registry privado
+./mvnw clean compile jib:build -Djib.to.image="$REGISTRY:5000/charger-manager:latest"
+# provisiona o manager com a stack do charger-manager
+cd ../vagrant-env
+vagrant ssh -c "docker stack deploy -c /shared/stacks/charger-manager.yml charger-stack" manager1
+cd ..
 
 echo "its all good"
 echo "===== Cloudflare Tunnel Public Address: $PUBLIC_ADDRESS"

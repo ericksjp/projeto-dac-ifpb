@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" 
+                  xmlns:sch="http://ifpb.com/charger-proxy" 
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" 
+                  xmlns:tns="http://ifpb.com/charger-proxy" 
+                  targetNamespace="http://ifpb.com/charger-proxy">
+  <wsdl:types>
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:import namespace="http://ifpb.com/charger-proxy" schemaLocation="charge.xsd"/>
+    </xs:schema>
+  </wsdl:types>
+  
+  <wsdl:message name="createChargeRequest">
+    <wsdl:part element="tns:createChargeRequest" name="createChargeRequest"/>
+  </wsdl:message>
+  
+  <wsdl:message name="createChargeResponse">
+    <wsdl:part element="tns:createChargeResponse" name="createChargeResponse"/>
+  </wsdl:message>
+  
+  <wsdl:portType name="ChargePort">
+    <wsdl:operation name="createCharge">
+      <wsdl:input message="tns:createChargeRequest" name="createChargeRequest"/>
+      <wsdl:output message="tns:createChargeResponse" name="createChargeResponse"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  
+  <wsdl:binding name="ChargePortSoap11" type="tns:ChargePort">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="createCharge">
+      <soap:operation soapAction=""/>
+      <wsdl:input name="createChargeRequest">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="createChargeResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  
+  <wsdl:service name="ChargePortService">
+    <wsdl:port binding="tns:ChargePortSoap11" name="ChargePortSoap11">
+      <soap:address location="http://localhost:8082/ws/charge"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
