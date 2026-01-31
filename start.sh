@@ -6,7 +6,12 @@ VAGRANT_DIR="$(pwd)/vagrant-env"
 WAIT_FOR_SERVICE_SH="$(pwd)/infra/scripts/wait_for_service.sh"
 SERVICE_IP_SH="$(pwd)/infra/scripts/service_ip.sh"
 
-API_KEY="$$aact_hmlg_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjA2ZmFkM2YxLWU5NmMtNDEwMi04ODIyLTk1MmRjMDA4NDEzMjo6JGFhY2hfZmE3MjM1YzYtYzcyOS00N2YyLWFhYWYtODg4ZWQxYzRkMTdk"
+if [ -z "${ASAAS_API_KEY:-}" ]; then
+  echo "Error: ASAAS_API_KEY environment variable is not set."
+  exit 1
+fi
+
+API_KEY="$ASAAS_API_KEY"
 
 #=== INICIALIZAR VMs ===#he
 
