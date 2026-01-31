@@ -28,23 +28,25 @@ vagrant ssh manager1 -c 'docker network inspect charger-network >/dev/null 2>&1 
 # provisionar o manager com a stack do banco de dados
 vagrant ssh -c "docker stack deploy -c /shared/stacks/db.yml charger-stack" manager1
 
-# ip do bd
-$WAIT_FOR_SERVICE_SH $VAGRANT_DIR manager1 charger-stack_postgres 10 5
+# esperar o banco de dados ficar disponível
+$WAIT_FOR_SERVICE_SH "$VAGRANT_DIR" manager1 charger-stack_postgres 10 5 3 \
+'docker service ps --filter "desired-state=running" --format "{{.CurrentState}}" charger-stack_postgres 2>/dev/null | grep -q "Running"'
+# pegar o ip do banco de dados
 DB_IP=$($SERVICE_IP_SH $VAGRANT_DIR manager1 charger-stack_postgres)
 
-# aplicar migrations ao bd
+# aplicar migrations no banco de dados
 vagrant ssh -c "docker stack deploy -c /shared/stacks/db-migrate.yml charger-stack" manager1
-
-sleep 5
-
-vagrant ssh -c "docker service logs charger-stack_db-migrate --raw" manager1
+# esperar as migrations terminarem
+$WAIT_FOR_SERVICE_SH $VAGRANT_DIR manager1 localregistry 10 3 1 \
+"docker service ps --filter 'desired-state=shutdown' --format '{{.CurrentState}}' charger-stack_db-migrate 2>/dev/null | grep -q 'Complete'"
 
 #=== PROVISIONAR REGISTER LOCAL ===#
 
+# criar registry local no manager1, se não existir
 vagrant ssh -c "if ! docker service ls --format '{{.Name}}' | grep -q '^localregistry$'; then docker service create --name localregistry --publish published=5000,target=5000 --constraint='node.hostname==manager1' registry:2; fi" manager1
-
-# ip do register 
-$WAIT_FOR_SERVICE_SH $VAGRANT_DIR manager1 localregistry 10 5
+# esperar o registry local ficar disponível
+$WAIT_FOR_SERVICE_SH $VAGRANT_DIR manager1 localregistry 10 5 3 "curl -f http://127.0.0.1:5000/v2/"
+# pegar o ip do registry local
 REGISTRY=$($SERVICE_IP_SH $VAGRANT_DIR manager1 localregistry)
 
 echo "Private Docker Registry is running on IP address: $REGISTRY"
@@ -57,9 +59,11 @@ cd ../charger-proxy
 ./mvnw clean compile jib:build -Djib.to.image="$REGISTRY:5000/charger-proxy:latest"
 # provisiona o manager com a stack do charger-proxy
 cd ../vagrant-env
-vagrant ssh -c "env ASAAS_API_KEY=${API_KEY} docker stack deploy -c /shared/stacks/charger-proxy.yml charger-stack" manager1
+vagrant ssh -c "env ASAAS_API_KEY='$API_KEY' docker stack deploy -c /shared/stacks/charger-proxy.yml charger-stack" manager1
 
-$WAIT_FOR_SERVICE_SH $VAGRANT_DIR manager1 charger-stack_charger-proxy 10 5
+# espera o charger-proxy ficar disponível
+$WAIT_FOR_SERVICE_SH $VAGRANT_DIR manager1 charger-stack_charger-proxy 10 5 3 "curl -fs http://127.0.0.1:8082/api/webhook/health"
+# pega o ip do charger-proxy
 PROXY_IP=$($SERVICE_IP_SH $VAGRANT_DIR manager1 charger-stack_charger-proxy)
 
 echo "Charger-proxy is running on IP address: $PROXY_IP"
@@ -68,8 +72,9 @@ echo "Charger-proxy is running on IP address: $PROXY_IP"
 
 # sobe serviço do cloudfaret tunnel
 vagrant ssh -c "docker stack deploy -c /shared/stacks/cloudflare-tunnel.yml charger-stack" manager1
-$WAIT_FOR_SERVICE_SH $VAGRANT_DIR manager1 charger-stack_cloudflare-tunnel 10 5
-
+# espera o cloudflare tunnel ficar disponível
+$WAIT_FOR_SERVICE_SH $VAGRANT_DIR manager1 charger-stack_cloudflare-tunnel 10 5 3 \
+"docker service ps --filter 'desired-state=running' --format '{{.CurrentState}}' charger-stack_cloudflare-tunnel 2>/dev/null | grep -q 'Running'"
 # pega o endereço público do tunnel
 PUBLIC_ADDRESS=$(vagrant ssh manager1 -c "docker service logs charger-stack_cloudflare-tunnel --raw" | grep -m 1 " |  https://" | awk '{print $4}')
 echo "===== Cloudflare Tunnel Public Address: $PUBLIC_ADDRESS"
