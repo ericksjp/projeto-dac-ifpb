@@ -26,6 +26,7 @@ else
     echo "todos os arquivos de ambiente encontrados!"
 fi    
 
+
 #=== INICIALIZAR VMs ===#he
 
 # entrar no diretório do Vagrant e copiar o arquivo JSON
@@ -38,6 +39,17 @@ cp ../infra/envs/*.env shared/envs/
 
 # inicializar VMs
 vagrant up --provider=virtualbox
+
+# remover proxy e manager anterior (se existirem)
+vagrant ssh -c "
+docker service rm \
+  charger-stack_charger-manager \
+  charger-stack_charger-proxy \
+  charger-stack_db-migrate \
+  > /dev/null 2>&1 || true
+" manager1
+
+sleep 5
 
 # criar network
 vagrant ssh manager1 -c 'docker network inspect charger-network >/dev/null 2>&1 || docker network create --driver overlay --attachable charger-network'
@@ -96,7 +108,7 @@ vagrant ssh -c "docker stack deploy -c /shared/stacks/cloudflare-tunnel.yml char
 $WAIT_FOR_SERVICE_SH $VAGRANT_DIR manager1 charger-stack_cloudflare-tunnel 10 5 3 \
 "docker service ps --filter 'desired-state=running' --format '{{.CurrentState}}' charger-stack_cloudflare-tunnel 2>/dev/null | grep -q 'Running'"
 # pega o endereço público do tunnel
-PUBLIC_ADDRESS=$(vagrant ssh -c "docker service logs charger-stack_cloudflare-tunnel --raw --tail 50 | grep ' |  https://' | head -n 1 | awk '{print \$4}'" manager1)
+PUBLIC_ADDRESS=$(vagrant ssh -c "docker service logs charger-stack_cloudflare-tunnel --raw | grep ' |  https://' | head -n 1 | awk '{print \$4}'" manager1)
 echo "===== Cloudflare Tunnel Public Address: $PUBLIC_ADDRESS"
 
 #=== PROVISIONAR CHARGER MANAGER ===#
