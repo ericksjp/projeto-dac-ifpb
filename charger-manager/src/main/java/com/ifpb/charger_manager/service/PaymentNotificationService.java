@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -38,12 +39,12 @@ public class PaymentNotificationService {
     @Transactional(readOnly = false)
     public void processPaymentEvent(PaymentEventDto dto) {
 
-        UUID chargeId = null;
-
-        if (notificationExists(dto.getId())) {
+        if (notificationProcessed(dto.getId())) {
             log.info("Notification with external event ID {} already processed. Skipping.", dto.getId());
             return;
         }
+
+        UUID chargeId = null;
 
         try {
             Charge charge = chargeService.getChargeByExternalId(dto.getChargeId());
@@ -52,7 +53,6 @@ public class PaymentNotificationService {
             emailService.sendChargeStatusUpdateEmail(charge);
         } catch (ChargeNotFoundException e) {
             log.info("Charge with external ID {} not found. Skipping status update.", dto.getChargeId());
-            return;
         }
 
         saveNotification(dto, chargeId);
@@ -71,8 +71,14 @@ public class PaymentNotificationService {
         return notificationRepository.save(notification);
     }
 
-    public boolean notificationExists(String externalEventId) {
-        return notificationRepository.findByExternalEventId(externalEventId).isPresent();
+    public boolean notificationProcessed(String externalEventId) {
+        Optional<PaymentNotification> notification = notificationRepository.findByExternalEventId(externalEventId);
+
+        if (notification.isEmpty()) {
+            return false;
+        }
+
+        return notification.get().getProcessed();
     }
 
     /**

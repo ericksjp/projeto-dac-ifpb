@@ -28,7 +28,7 @@ public class PaymentNotification implements Persistable<UUID> {
     }
 
     @PersistenceCreator
-    public PaymentNotification(UUID id, String chargeExternalId, String eventType, String externalEventId, Map<String, Object> payload, LocalDateTime receivedAt, Boolean processed, LocalDateTime processedAt) {
+    public PaymentNotification(UUID id, String chargeExternalId, String eventType, String externalEventId, LocalDateTime receivedAt, Boolean processed, LocalDateTime processedAt) {
         this.id = id;
         this.chargeExternalId = chargeExternalId;
         this.eventType = eventType;
