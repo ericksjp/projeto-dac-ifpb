@@ -150,7 +150,7 @@ public class ChargeService {
      * Cancela uma cobrança
      */
     @Transactional
-    public Charge cancelCharge(UUID id) {
+    public void cancelCharge(UUID id) {
         log.info("Cancelling charge: id={}", id);
         
         Charge charge = getChargeById(id);
@@ -166,20 +166,7 @@ public class ChargeService {
         try {
             // Cancela no Asaas via proxy
             chargeProxyClient.cancelCharge(charge.getExternalId());
-            
-            charge.setStatus(ChargeStatus.CANCELLED);
-            charge.setCancelledAt(LocalDateTime.now());
-            charge.setUpdatedAt(LocalDateTime.now());
-            
-            charge = chargeRepository.save(charge);
-            charge.setNew(false);
-            
-            // Envia notificação por e-mail
-            emailService.sendChargeStatusUpdateEmail(charge);
-            
-            log.info("Charge cancelled successfully: id={}", id);
-            return charge;
-            
+            log.info("Received cancellation confirmation from provider for charge id={}", id);
         } catch (Exception e) {
             log.error("Error cancelling charge {}: {}", id, e.getMessage());
             throw new InvalidRequestException("Erro ao cancelar cobrança no provedor: " + e.getMessage());

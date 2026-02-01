@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -93,11 +94,10 @@ public class ChargeController {
      * Cancela uma cobrança
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<ChargeResponseDto> cancelCharge(@PathVariable UUID id) {
+    public ResponseEntity<Map<String, String>> cancelCharge(@PathVariable UUID id) {
         log.info("DELETE /api/v1/charges/{} - Cancelling charge", id);
-        
-        Charge charge = chargeService.cancelCharge(id);
-        return ResponseEntity.ok(toDto(charge));
+        chargeService.cancelCharge(id);
+        return ResponseEntity.ok(Map.of("message", "Requisição para cancelamento da cobrança enviada com sucesso."));
     }
     
     /**
