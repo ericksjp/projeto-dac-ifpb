@@ -5,6 +5,7 @@ import com.ifpb.charger_manager.api.dto.CustomerResponseDto;
 import com.ifpb.charger_manager.api.dto.CustomerUpdateDto;
 import com.ifpb.charger_manager.domain.model.Customer;
 import com.ifpb.charger_manager.service.CustomerService;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -34,7 +35,7 @@ public class CustomerController {
      * Cria um novo cliente
      */
     @PostMapping
-    public ResponseEntity<CustomerResponseDto> createCustomer(@RequestBody CustomerCreateDto dto) {
+    public ResponseEntity<CustomerResponseDto> createCustomer(@Valid @RequestBody CustomerCreateDto dto) {
         log.info("POST /api/v1/customers - Creating customer: {}", dto.getName());
         
         Customer customer = customerService.createCustomer(

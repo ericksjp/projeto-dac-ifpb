@@ -5,8 +5,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import jakarta.validation.ConstraintViolationException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -49,6 +52,32 @@ public class GlobalExceptionHandler {
         log.error("Charge creation error: {}", ex.getMessage(), ex);
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
     }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, Object>> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+        log.error("Validation error: {}", ex.getMessage());
+        Map<String, Object> error = buildErrorBody(HttpStatus.BAD_REQUEST, "Validation failed");
+
+        Map<String, String> fieldErrors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(fieldError ->
+                fieldErrors.put(fieldError.getField(), fieldError.getDefaultMessage()));
+
+        error.put("errors", fieldErrors);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleConstraintViolation(ConstraintViolationException ex) {
+        log.error("Constraint violation: {}", ex.getMessage());
+        Map<String, Object> error = buildErrorBody(HttpStatus.BAD_REQUEST, "Validation failed");
+
+        Map<String, String> fieldErrors = new HashMap<>();
+        ex.getConstraintViolations().forEach(violation ->
+                fieldErrors.put(violation.getPropertyPath().toString(), violation.getMessage()));
+
+        error.put("errors", fieldErrors);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
     
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
@@ -57,12 +86,15 @@ public class GlobalExceptionHandler {
     }
     
     private ResponseEntity<Map<String, Object>> buildErrorResponse(HttpStatus status, String message) {
+        return ResponseEntity.status(status).body(buildErrorBody(status, message));
+    }
+
+    private Map<String, Object> buildErrorBody(HttpStatus status, String message) {
         Map<String, Object> error = new HashMap<>();
         error.put("timestamp", LocalDateTime.now());
         error.put("status", status.value());
         error.put("error", status.getReasonPhrase());
         error.put("message", message);
-        
-        return ResponseEntity.status(status).body(error);
+        return error;
     }
 }
