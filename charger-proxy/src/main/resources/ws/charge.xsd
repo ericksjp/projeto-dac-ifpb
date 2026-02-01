@@ -30,4 +30,24 @@
             </xs:sequence>
         </xs:complexType>
     </xs:element>
+
+    <!-- Cancel Charge Operations -->
+    <xs:element name="cancelChargeRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="chargeId" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="cancelChargeResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="chargeId" type="xs:string"/>
+                <xs:element name="status" type="xs:string"/>
+                <xs:element name="cancelled" type="xs:boolean"/>
+                <xs:element name="message" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
 </xs:schema>

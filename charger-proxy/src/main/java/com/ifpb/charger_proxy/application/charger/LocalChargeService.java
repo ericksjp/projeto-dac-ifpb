@@ -106,6 +106,26 @@ public class LocalChargeService {
     }
 
     /**
+     * Cancela uma cobrança no ASAAS
+     * 
+     * @param chargeId ID da cobrança a ser cancelada
+     * @return true se o cancelamento foi bem sucedido
+     */
+    public boolean cancelCharge(String chargeId) {
+        log.info("Cancelling charge with ID: {}", chargeId);
+
+        try {
+            paymentService.deletePayment(chargeId);
+            log.info("Charge cancelled successfully with ID: {}", chargeId);
+            return true;
+            
+        } catch (Exception e) {
+            log.error("Error cancelling charge with ID {}: {}", chargeId, e.getMessage(), e);
+            throw new ChargeCreationException("Erro ao cancelar cobrança: " + e.getMessage(), e);
+        }
+    }
+
+    /**
      * Converte string de billing type para o enum do SDK
      */
     private PaymentSaveRequestBillingType convertBillingType(String billingType) {

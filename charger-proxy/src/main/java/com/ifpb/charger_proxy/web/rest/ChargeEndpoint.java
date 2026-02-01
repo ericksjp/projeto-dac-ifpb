@@ -82,4 +82,39 @@ public class ChargeEndpoint {
             throw e;
         }
     }
+
+    /**
+     * Endpoint SOAP para cancelar uma cobrança
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "cancelChargeRequest")
+    @ResponsePayload
+    public CancelChargeResponse cancelCharge(@RequestPayload CancelChargeRequest request) {
+        log.info("Received cancelCharge request for charge: {}", request.getChargeId());
+
+        try {
+            validationUtil.validateRequired(request.getChargeId(), "chargeId");
+            
+            boolean cancelled = chargeService.cancelCharge(request.getChargeId());
+
+            CancelChargeResponse response = new CancelChargeResponse();
+            response.setChargeId(request.getChargeId());
+            response.setCancelled(cancelled);
+            response.setStatus(cancelled ? "CANCELLED" : "FAILED");
+            response.setMessage(cancelled ? "Cobrança cancelada com sucesso" : "Falha ao cancelar cobrança");
+
+            log.info("Charge {} cancellation status: {}", request.getChargeId(), cancelled ? "SUCCESS" : "FAILED");
+            return response;
+            
+        } catch (Exception e) {
+            log.error("Error cancelling charge {}: {}", request.getChargeId(), e.getMessage(), e);
+            
+            CancelChargeResponse response = new CancelChargeResponse();
+            response.setChargeId(request.getChargeId());
+            response.setCancelled(false);
+            response.setStatus("ERROR");
+            response.setMessage("Erro ao cancelar cobrança: " + e.getMessage());
+            
+            return response;
+        }
+    }
 }
