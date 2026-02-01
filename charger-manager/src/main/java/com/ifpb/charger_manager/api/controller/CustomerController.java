@@ -79,7 +79,7 @@ public class CustomerController {
     @PutMapping("/{id}")
     public ResponseEntity<CustomerResponseDto> updateCustomer(
             @PathVariable UUID id,
-            @RequestBody CustomerUpdateDto dto) {
+            @Valid @RequestBody CustomerUpdateDto dto) {
 
         log.info("PUT /api/v1/customers/{} - Updating customer", id);
 
