@@ -28,25 +28,25 @@ public class PaymentNotification implements Persistable<UUID> {
     }
 
     @PersistenceCreator
-    public PaymentNotification(UUID id, UUID chargeId, String eventType, String externalEventId, Map<String, Object> payload, LocalDateTime receivedAt, Boolean processed, LocalDateTime processedAt) {
+    public PaymentNotification(UUID id, String chargeExternalId, String eventType, String externalEventId, Map<String, Object> payload, LocalDateTime receivedAt, Boolean processed, LocalDateTime processedAt) {
         this.id = id;
-        this.chargeId = chargeId;
+        this.chargeExternalId = chargeExternalId;
         this.eventType = eventType;
         this.externalEventId = externalEventId;
-        this.payload = payload;
         this.receivedAt = receivedAt;
         this.processed = processed;
         this.processedAt = processedAt;
         this.isNew = false;
     }
     
+    // id interno pagamento
     private UUID chargeId;
-    
+    // id externo do pagamento no charge-proxy
+    private String chargeExternalId;
+    // tipo do evento (e.g., PAYMENT_SUCCESS, PAYMENT_FAILED)
     private String eventType;
+    // id do evento no sistema externo (charge-proxy)
     private String externalEventId;
-    
-    // Payload JSON do evento
-    private Map<String, Object> payload;
     
     private LocalDateTime receivedAt;
     private Boolean processed;
@@ -69,6 +69,14 @@ public class PaymentNotification implements Persistable<UUID> {
         this.chargeId = chargeId;
     }
 
+    public String getChargeExternalId() {
+        return chargeExternalId;
+    }
+
+    public void setChargeExternalId(String chargeExternalId) {
+        this.chargeExternalId = chargeExternalId;
+    }
+
     public String getEventType() {
         return eventType;
     }
@@ -83,14 +91,6 @@ public class PaymentNotification implements Persistable<UUID> {
 
     public void setExternalEventId(String externalEventId) {
         this.externalEventId = externalEventId;
-    }
-
-    public Map<String, Object> getPayload() {
-        return payload;
-    }
-
-    public void setPayload(Map<String, Object> payload) {
-        this.payload = payload;
     }
 
     public LocalDateTime getReceivedAt() {

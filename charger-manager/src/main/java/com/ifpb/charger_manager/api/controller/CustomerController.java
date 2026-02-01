@@ -21,15 +21,15 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v1/customers")
 public class CustomerController {
-    
+
     private static final Logger log = LoggerFactory.getLogger(CustomerController.class);
-    
+
     private final CustomerService customerService;
 
     public CustomerController(CustomerService customerService) {
         this.customerService = customerService;
     }
-    
+
     /**
      * Cria um novo cliente
      */
@@ -45,33 +45,33 @@ public class CustomerController {
         
         return ResponseEntity.status(HttpStatus.CREATED).body(toDto(customer));
     }
-    
+
     /**
      * Busca um cliente por ID
      */
     @GetMapping("/{id}")
     public ResponseEntity<CustomerResponseDto> getCustomer(@PathVariable UUID id) {
         log.info("GET /api/v1/customers/{} - Getting customer", id);
-        
+
         Customer customer = customerService.getCustomerById(id);
         return ResponseEntity.ok(toDto(customer));
     }
-    
+
     /**
      * Lista todos os clientes
      */
     @GetMapping
     public ResponseEntity<List<CustomerResponseDto>> getAllCustomers() {
         log.info("GET /api/v1/customers - Listing all customers");
-        
+
         List<CustomerResponseDto> customers = customerService.getAllCustomers()
-            .stream()
-            .map(this::toDto)
-            .collect(Collectors.toList());
-        
+                .stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+
         return ResponseEntity.ok(customers);
     }
-    
+
     /**
      * Atualiza um cliente
      */
@@ -79,25 +79,24 @@ public class CustomerController {
     public ResponseEntity<CustomerResponseDto> updateCustomer(
             @PathVariable UUID id,
             @RequestBody CustomerUpdateDto dto) {
-        
+
         log.info("PUT /api/v1/customers/{} - Updating customer", id);
-        
+
         Customer customer = customerService.updateCustomer(id, dto.getName(), dto.getEmail());
         return ResponseEntity.ok(toDto(customer));
     }
-    
+
     /**
      * Converte Customer para CustomerResponseDto
      */
     private CustomerResponseDto toDto(Customer customer) {
         return new CustomerResponseDto(
-            customer.getId(),
-            customer.getExternalId(),
-            customer.getName(),
-            customer.getCpfCnpj(),
-            customer.getEmail(),
-            customer.getCreatedAt(),
-            customer.getUpdatedAt()
-        );
+                customer.getId(),
+                customer.getExternalId(),
+                customer.getName(),
+                customer.getCpfCnpj(),
+                customer.getEmail(),
+                customer.getCreatedAt(),
+                customer.getUpdatedAt());
     }
 }

@@ -28,14 +28,9 @@ public class PaymentNotificationController {
     @PostMapping("/payment-events")
     public ResponseEntity<Void> receivePaymentEvent(@RequestBody PaymentEventDto dto) {
         log.info("POST /api/v1/notifications/payment-events - Received event: type={}, chargeId={}", 
-                 dto.getEventType(), dto.getChargeExternalId());
+                 dto.getEventType(), dto.getChargeId());
         
-        notificationService.processPaymentEvent(
-            dto.getEventType(),
-            dto.getExternalEventId(),
-            dto.getChargeExternalId(),
-            dto.getPayload()
-        );
+        notificationService.processPaymentEvent(dto);
         
         return ResponseEntity.ok().build();
     }

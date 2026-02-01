@@ -214,7 +214,12 @@ public class ChargeService {
         log.info("Charge status updated successfully by externalId: externalId={}, status={}", externalId, newStatus);
         return charge;
     }
-    
+
+    public Charge getChargeByExternalId(String externalId) {
+        return chargeRepository.findByExternalId(externalId)
+            .orElseThrow(() -> new ChargeNotFoundException("Cobrança não encontrada com externalId: " + externalId));
+    }
+
     /**
      * Valida os dados da cobrança
      */

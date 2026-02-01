@@ -1,17 +1,23 @@
 package com.ifpb.charger_manager.api.dto;
 
-
-
-import java.util.Map;
-
 /**
- * DTO para notificação de evento de pagamento
+ * DTO para transferência de dados de eventos de pagamento
  */
 public class PaymentEventDto {
+    // id do evento no sistema interno
+    private String id;
     private String eventType;
-    private String externalEventId;
-    private String chargeExternalId;
-    private Map<String, Object> payload;
+    private String chargeId;
+    private String Status;
+    private String customerId;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getEventType() {
         return eventType;
@@ -21,27 +27,27 @@ public class PaymentEventDto {
         this.eventType = eventType;
     }
 
-    public String getExternalEventId() {
-        return externalEventId;
+    public String getChargeId() {
+        return chargeId;
     }
 
-    public void setExternalEventId(String externalEventId) {
-        this.externalEventId = externalEventId;
+    public void setChargeId(String chargeId) {
+        this.chargeId = chargeId;
     }
 
-    public String getChargeExternalId() {
-        return chargeExternalId;
+    public String getStatus() {
+        return Status;
     }
 
-    public void setChargeExternalId(String chargeExternalId) {
-        this.chargeExternalId = chargeExternalId;
+    public void setStatus(String status) {
+        Status = status;
     }
 
-    public Map<String, Object> getPayload() {
-        return payload;
+    public String getCustomerId() {
+        return customerId;
     }
 
-    public void setPayload(Map<String, Object> payload) {
-        this.payload = payload;
+    public void setCustomerId(String customerId) {
+        this.customerId = customerId;
     }
 }
