@@ -43,12 +43,16 @@ public class PaymentEventConsumer {
         log.info("Processando {} eventos pendentes", events.size());
 
         for (PaymentEvent event : events) {
+            String paymentId = (String) event.getPayload().getOrDefault("id", null);
+            String paymentStatus = (String) event.getPayload().getOrDefault("status", null);
+            String customerId = (String) event.getPayload().getOrDefault("customer", null);
+
             PaymentEventDto dto = new PaymentEventDto(
                     event.getId(),
-                    event.getProviderEventId(),
                     event.getEventType(),
-                    event.getPayload(),
-                    event.getReceivedAt());
+                    paymentId,
+                    paymentStatus,
+                    customerId);
 
             chargerManagerClient.send(dto, () -> markEventAsProcessed(event), error -> LogError(error, event));
         }
