@@ -43,7 +43,7 @@ public class PaymentNotificationService {
         try {
             Charge charge = chargeService.getChargeByExternalId(dto.getChargeId());
             chargeId = charge.getId();
-            chargeService.updateChargeStatus(chargeId, mapEventTypeToStatus(dto.getEventType()));
+            charge = chargeService.updateChargeStatus(chargeId, mapEventTypeToStatus(dto.getEventType()));
             emailService.sendChargeStatusUpdateEmail(charge);
         } catch (ChargeNotFoundException e) {
             log.info("Charge with external ID {} not found. Skipping status update.", dto.getChargeId());
