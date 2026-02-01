@@ -40,6 +40,11 @@ public class PaymentNotificationService {
 
         UUID chargeId = null;
 
+        if (notificationExists(dto.getId())) {
+            log.info("Notification with external event ID {} already processed. Skipping.", dto.getId());
+            return;
+        }
+
         try {
             Charge charge = chargeService.getChargeByExternalId(dto.getChargeId());
             chargeId = charge.getId();
@@ -64,6 +69,10 @@ public class PaymentNotificationService {
         notification.setProcessed(true);
         notification.setProcessedAt(LocalDateTime.now());
         return notificationRepository.save(notification);
+    }
+
+    public boolean notificationExists(String externalEventId) {
+        return notificationRepository.findByExternalEventId(externalEventId).isPresent();
     }
 
     /**
