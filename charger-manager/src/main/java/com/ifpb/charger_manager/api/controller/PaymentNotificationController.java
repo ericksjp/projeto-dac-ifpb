@@ -30,8 +30,12 @@ public class PaymentNotificationController {
         log.info("POST /api/v1/notifications/payment-events - Received event: type={}, chargeId={}", 
                  dto.getEventType(), dto.getChargeId());
         
-        notificationService.processPaymentEvent(dto);
-        
-        return ResponseEntity.ok().build();
+        try {
+            notificationService.processPaymentEvent(dto);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("Error processing payment event: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).build();
+        }
     }
 }
