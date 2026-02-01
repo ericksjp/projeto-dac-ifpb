@@ -29,6 +29,26 @@
             </xs:sequence>
         </xs:complexType>
     </xs:element>
+
+    <!-- Cancel Charge Operations -->
+    <xs:element name="cancelChargeRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="chargeId" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="cancelChargeResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="chargeId" type="xs:string"/>
+                <xs:element name="status" type="xs:string"/>
+                <xs:element name="cancelled" type="xs:boolean"/>
+                <xs:element name="message" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
 </xs:schema>
   </wsdl:types>
   <wsdl:message name="createChargeResponse">
@@ -39,11 +59,25 @@
     <wsdl:part element="tns:createChargeRequest" name="createChargeRequest">
     </wsdl:part>
   </wsdl:message>
+  <wsdl:message name="cancelChargeResponse">
+    <wsdl:part element="tns:cancelChargeResponse" name="cancelChargeResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="cancelChargeRequest">
+    <wsdl:part element="tns:cancelChargeRequest" name="cancelChargeRequest">
+    </wsdl:part>
+  </wsdl:message>
   <wsdl:portType name="ChargePort">
     <wsdl:operation name="createCharge">
       <wsdl:input message="tns:createChargeRequest" name="createChargeRequest">
     </wsdl:input>
       <wsdl:output message="tns:createChargeResponse" name="createChargeResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cancelCharge">
+      <wsdl:input message="tns:cancelChargeRequest" name="cancelChargeRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:cancelChargeResponse" name="cancelChargeResponse">
     </wsdl:output>
     </wsdl:operation>
   </wsdl:portType>
@@ -58,10 +92,19 @@
         <soap:body use="literal"/>
       </wsdl:output>
     </wsdl:operation>
+    <wsdl:operation name="cancelCharge">
+      <soap:operation soapAction=""/>
+      <wsdl:input name="cancelChargeRequest">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="cancelChargeResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
   </wsdl:binding>
   <wsdl:service name="ChargePortService">
     <wsdl:port binding="tns:ChargePortSoap11" name="ChargePortSoap11">
-      <soap:address location="http://192.168.56.32:8082/ws/charge"/>
+      <soap:address location="http://localhost:8082/ws/charge"/>
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>
