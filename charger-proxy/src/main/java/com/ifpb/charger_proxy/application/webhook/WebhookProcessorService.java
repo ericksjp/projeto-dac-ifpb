@@ -10,11 +10,8 @@ import com.ifpb.charger_proxy.domain.model.PaymentEvent;
 import com.ifpb.charger_proxy.domain.repository.PaymentEventRepository;
 import com.ifpb.charger_proxy.web.dto.AsaasWebhookPayload;
 
-import com.ifpb.charger_proxy.infra.client.ChargerManagerClient;
-import com.ifpb.charger_proxy.web.dto.PaymentEventDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import java.util.Map;
 
 /**
  * Serviço responsável por processar webhooks recebidos do Asaas
@@ -25,7 +22,6 @@ import java.util.Map;
 public class WebhookProcessorService {
 
     private final PaymentEventRepository paymentEventRepository;
-    private final ChargerManagerClient chargerManagerClient;
     /**
      * Processa webhook recebido
      */
@@ -59,37 +55,12 @@ public class WebhookProcessorService {
 
             paymentEventRepository.save(event);
             log.info("Webhook salvo com sucesso - eventId={}", payload.getId());
-            
-            sendNotification(event, payload);
 
         } catch (DataIntegrityViolationException e) {
             log.warn("Tentativa de duplicidade detectada pelo banco de dados para o evento {}", payload.getId());
         } catch (Exception e) {
             log.error("Erro ao salvar webhook - eventId={}", payload.getId(), e);
             throw e;
-        }
-    }
-
-    private void sendNotification(PaymentEvent event, AsaasWebhookPayload payload) {
-        try {
-            PaymentEventDto dto = new PaymentEventDto();
-            dto.setId(event.getId());
-            dto.setEventType(payload.getEvent());
-            
-            Map<String, Object> paymentData = payload.getPayload();
-            if (paymentData != null) {
-                dto.setChargeId((String) paymentData.get("id"));
-                dto.setStatus((String) paymentData.get("status"));
-                dto.setCustomerId((String) paymentData.get("customer"));
-            }
-            
-            chargerManagerClient.send(dto, 
-                () -> log.info("Notification sent successfully to manager for event {}", event.getId()),
-                error -> log.error("Error sending notification to manager for event {}: {}", event.getId(), error.getMessage())
-            );
-            
-        } catch (Exception e) {
-            log.error("Error preparing notification for event {}: {}", event.getId(), e.getMessage());
         }
     }
 }
