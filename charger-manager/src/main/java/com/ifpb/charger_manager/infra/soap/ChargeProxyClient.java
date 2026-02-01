@@ -3,6 +3,8 @@ package com.ifpb.charger_manager.infra.soap;
 import com.ifpb.charger_manager.ws.charge.v1.ChargePortService;
 import com.ifpb.charger_manager.ws.charge.v1.ChargePort;
 import com.ifpb.charger_manager.ws.charge.v1.CreateChargeRequest;
+import com.ifpb.charger_manager.ws.charge.v1.CancelChargeRequest;
+import com.ifpb.charger_manager.ws.charge.v1.CancelChargeResponse;
 import com.ifpb.charger_manager.ws.charge.v1.CreateChargeResponse;
 import com.ifpb.charger_manager.ws.customer.v1.CustomerPortService;
 import com.ifpb.charger_manager.ws.customer.v1.CustomerPort;
@@ -75,6 +77,22 @@ public class ChargeProxyClient {
         
         CreateChargeResponse response = chargePort.createCharge(request);
         log.info("SOAP response: chargeId={}, status={}", response.getChargeId(), response.getStatus());
+        
+        return response;
+    }
+
+    /**
+     * Cancela uma cobrança no Asaas via charge-proxy
+     */
+    public CancelChargeResponse cancelCharge(String chargeId) {
+        log.info("Calling SOAP: cancelCharge for chargeId={}", chargeId);
+        
+        CancelChargeRequest request = new CancelChargeRequest();
+        request.setChargeId(chargeId);
+        
+        CancelChargeResponse response = chargePort.cancelCharge(request);
+        log.info("SOAP response: chargeId={}, cancelled={}, status={}", 
+                 response.getChargeId(), response.isCancelled(), response.getStatus());
         
         return response;
     }

@@ -16,11 +16,17 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * REST Controller para receber webhooks do ASAAS
  */
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.RequestHeader;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/webhook")
 @RequiredArgsConstructor
 public class WebhookController {
+
+    @Value("${asaas.auth-token}")
+    private String asaasAuthToken;
 
     private final WebhookProcessorService webhookProcessorService;
 
@@ -31,8 +37,20 @@ public class WebhookController {
      * @return 200 OK se processado com sucesso, 500 em caso de erro
      */
     @PostMapping("/asaas")
-    public ResponseEntity<Void> receiveWebhook(@RequestBody AsaasWebhookPayload payload) {
+    public ResponseEntity<Void> receiveWebhook(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestBody AsaasWebhookPayload payload) {
+        
         log.info("Webhook received from ASAAS - EventId: {}", payload.getId());
+
+        // Validação do token
+        if (asaasAuthToken != null && !asaasAuthToken.isBlank()) {
+            if (authHeader == null || !authHeader.startsWith("Bearer ") || 
+                !authHeader.substring(7).equals(asaasAuthToken)) {
+                log.warn("Tentativa de acesso não autorizado ao webhook. Token inválido/ausente.");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+        }
 
         try {
             webhookProcessorService.processWebhook(payload);

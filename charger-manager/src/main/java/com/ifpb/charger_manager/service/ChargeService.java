@@ -163,18 +163,27 @@ public class ChargeService {
             throw new InvalidRequestException("Não é possível cancelar cobrança já recebida");
         }
         
-        charge.setStatus(ChargeStatus.CANCELLED);
-        charge.setCancelledAt(LocalDateTime.now());
-        charge.setUpdatedAt(LocalDateTime.now());
-        
-        charge = chargeRepository.save(charge);
-        charge.setNew(false);
-        
-        // Envia notificação por e-mail
-        emailService.sendChargeStatusUpdateEmail(charge);
-        
-        log.info("Charge cancelled successfully: id={}", id);
-        return charge;
+        try {
+            // Cancela no Asaas via proxy
+            chargeProxyClient.cancelCharge(charge.getExternalId());
+            
+            charge.setStatus(ChargeStatus.CANCELLED);
+            charge.setCancelledAt(LocalDateTime.now());
+            charge.setUpdatedAt(LocalDateTime.now());
+            
+            charge = chargeRepository.save(charge);
+            charge.setNew(false);
+            
+            // Envia notificação por e-mail
+            emailService.sendChargeStatusUpdateEmail(charge);
+            
+            log.info("Charge cancelled successfully: id={}", id);
+            return charge;
+            
+        } catch (Exception e) {
+            log.error("Error cancelling charge {}: {}", id, e.getMessage());
+            throw new InvalidRequestException("Erro ao cancelar cobrança no provedor: " + e.getMessage());
+        }
     }
     
     /**
