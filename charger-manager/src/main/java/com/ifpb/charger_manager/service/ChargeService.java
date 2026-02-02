@@ -33,13 +33,11 @@ public class ChargeService {
     private final ChargeRepository chargeRepository;
     private final CustomerService customerService;
     private final ChargeProxyClient chargeProxyClient;
-    private final EmailService emailService;
 
-    public ChargeService(ChargeRepository chargeRepository, CustomerService customerService, ChargeProxyClient chargeProxyClient, EmailService emailService) {
+    public ChargeService(ChargeRepository chargeRepository, CustomerService customerService, ChargeProxyClient chargeProxyClient) {
         this.chargeRepository = chargeRepository;
         this.customerService = customerService;
         this.chargeProxyClient = chargeProxyClient;
-        this.emailService = emailService;
     }
     
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -101,8 +99,8 @@ public class ChargeService {
             charge = chargeRepository.save(charge);
             charge.setNew(false);
             
-            // Envia notificação por e-mail
-            emailService.sendChargeStatusUpdateEmail(charge);
+            // // Envia notificação por e-mail
+            // emailService.sendChargeStatusUpdateEmail(charge);
             
             log.info("Charge created successfully: id={}, externalId={}", 
                      charge.getId(), charge.getExternalId());
